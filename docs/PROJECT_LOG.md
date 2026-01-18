@@ -116,7 +116,7 @@ Automatically generates preview images for new Coda rows so users don't wait for
 **Workflow Name:** "Distractions - Poll for New Rows"  
 **Workflow ID:** `xjakavqlRrftsG4c`  
 **Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
-**Status:** ✅ Complete and validated - ready for activation
+**Status:** 🔄 Testing in progress - Coda node verified working
 
 ### Purpose
 Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
@@ -127,9 +127,9 @@ Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda
 Schedule Trigger (5 min) → Get Rows (Coda) → Filter Rows → Loop Over Items → Trigger Image Fetch (HTTP POST)
 ```
 
-### Build Status: ✅ COMPLETE
+### Build Status: ✅ COMPLETE - Testing in Progress
 
-All 5 nodes are created, connected, and validated. Built using n8n MCP server API.
+All 5 nodes are created, connected, and validated. Coda node tested successfully (returns 26 items).
 
 ### Node Configuration
 
@@ -137,15 +137,17 @@ All 5 nodes are created, connected, and validated. Built using n8n MCP server AP
 - Interval: Every 5 minutes
 - typeVersion: 1.2
 
-**2. Get Rows Needing Images (Coda)** ✓
+**2. Get Rows Needing Images (Coda)** ✓ TESTED
 - Doc ID: `x8nvwL5l1e` (Everything)
 - Table ID: `grid-BQE4pcweF2` (Distractions | Regulars | Browsing)
 - Operation: Get All Rows
 - Limit: 50 rows
+- Query: (empty - filtering done by Filter node)
 - Credentials: Coda account
 - Options: useColumnNames = true
+- **Test Result:** Successfully returns 26 items from Coda table
 
-**3. Filter Rows Needing Images** ✓ (NEW - January 18, 2026)
+**3. Filter Rows Needing Images** ✓
 - Combinator: AND
 - Condition 1: `Uploaded Image` is empty
 - Condition 2: `Link` is not empty
@@ -176,10 +178,24 @@ All 5 nodes are created, connected, and validated. Built using n8n MCP server AP
 
 This approach is more reliable and maintainable than trying to use Coda's limited query syntax.
 
-### Next Steps
-1. Test the workflow manually by triggering the Schedule node
-2. Verify filtered rows are processed correctly
-3. Activate the workflow for production polling
+### Current Testing Status (January 18, 2026 ~10:05 PM MST)
+
+**Completed:**
+- ✅ Cleared the broken query from Coda node (was causing JSON parse error)
+- ✅ Set Return All = OFF, Limit = 50
+- ✅ Tested Coda node - successfully returns 26 items
+- ✅ Confirmed some rows have "empty" in Image column (candidates for image generation)
+
+**Next Steps:**
+1. Click "Back to canvas" in n8n UI
+2. Click on Filter node and test it (should filter to only rows with empty Image + non-empty Link)
+3. Test the full workflow end-to-end
+4. Activate the workflow for production polling
+
+### Browser State
+- n8n workflow is open at: https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c
+- Currently viewing the Coda node output (26 items returned)
+- Need to navigate back to canvas and test Filter node
 
 ---
 
@@ -298,7 +314,10 @@ distractions/
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
 - [x] n8n polling workflow complete with Filter node
-- [x] Validates successfully - ready for activation
+- [x] Coda node tested - returns 26 items
+- [ ] Filter node testing
+- [ ] Full workflow end-to-end test
+- [ ] Activate for production
 
 ---
 
@@ -335,6 +354,13 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ## Changelog
 
+### January 18, 2026 (Night ~10:05 PM MST - TESTING)
+- ✅ Cleared broken query from Coda node (was causing "Unexpected non-whitespace character after JSON" error)
+- ✅ Set Coda node: Return All = OFF, Limit = 50, Query = empty
+- ✅ Tested Coda node via browser - successfully returns 26 items
+- ✅ Confirmed output shows rows with "empty" in Image column (need image generation)
+- 🔄 Next: Test Filter node, then full workflow, then activate
+
 ### January 18, 2026 (Night - FIXED)
 - ✅ **FIXED:** Query filter issue resolved by adding a Filter node
 - Added "Filter Rows Needing Images" node between Coda and Loop nodes
@@ -342,7 +368,6 @@ Hosted on Vercel at https://distractions.vercel.app
 - Increased row limit from 10 to 50 for better polling efficiency
 - Workflow now validates successfully (5 nodes, 4 connections)
 - **Key insight:** Coda node query only supports simple `column:value` equality - use n8n Filter node for complex logic
-- **Ready for:** Manual testing then production activation
 
 ### January 18, 2026 (Night - Previous)
 - Built complete polling workflow using n8n MCP server API
@@ -381,4 +406,4 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ---
 
-*Last updated: January 18, 2026*
+*Last updated: January 18, 2026 ~10:05 PM MST*
