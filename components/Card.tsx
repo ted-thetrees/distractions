@@ -143,8 +143,8 @@ function getContentType(url: string): ContentType {
 
 function getContentTypeLabel(type: ContentType): string {
   switch (type) {
-    case 'x-profile': return 'X';
-    case 'x-post': return 'X';
+    case 'x-profile': return 'Profile';
+    case 'x-post': return 'Post';
     case 'youtube': return 'YouTube';
     case 'vimeo': return 'Vimeo';
     case 'website': return 'Website';
