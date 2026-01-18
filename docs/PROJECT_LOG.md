@@ -111,6 +111,61 @@ Automatically generates preview images for new Coda rows so users don't wait for
 
 ---
 
+## n8n Workflow: Poll for New Rows
+
+**Workflow Name:** "Distractions - Poll for New Rows"  
+**Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
+**Status:** In Progress
+
+### Purpose
+Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
+
+### Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
+│ Schedule        │───▶│ Coda: List Rows  │───▶│ Loop Over Items │───▶│ HTTP Request     │
+│ (every 5 min)   │    │ (filter: empty   │    │                 │    │ (call existing   │
+│                 │    │  image + has URL)│    │                 │    │  webhook)        │
+└─────────────────┘    └──────────────────┘    └─────────────────┘    └──────────────────┘
+```
+
+### Implementation Details
+
+**1. Schedule Trigger**
+- Interval: Every 5 minutes
+- Type: Minutes
+
+**2. Coda Node Configuration**
+- Operation: Get Many Rows
+- Doc ID: `x8nvwL5l1e`
+- Table ID: `grid-t9UDaCw93A`
+- Query: Filter for rows where:
+  - `Uploaded Image` (c-R5LP8UaCQf) is empty
+  - `Link` (c-V60iC4UaYP) is not empty
+
+**3. Loop Over Items**
+- Processes each row individually
+- Extracts `row_id` and `link` values
+
+**4. HTTP Request to Existing Webhook**
+- URL: `https://n8n.listentothetrees.com/webhook/distractions-image`
+- Method: POST
+- Body: `{ "row_id": "{{row_id}}", "link": "{{link}}" }`
+
+### Coda Query Syntax
+To filter rows in n8n's Coda node, use the query parameter:
+```
+Uploaded Image:"" AND Link.isNotBlank()
+```
+
+Or using column IDs:
+```
+c-R5LP8UaCQf:"" AND c-V60iC4UaYP.isNotBlank()
+```
+
+---
+
 ## Coda Automation Research (January 18, 2026)
 
 ### Problem
@@ -132,14 +187,7 @@ Need to trigger the n8n workflow when new rows are added to the Coda table.
 
 ### Decision: Polling-Based Approach
 
-Instead of push (Coda → n8n), use pull (n8n polls Coda):
-
-**New Workflow: "Distractions - Poll for New Rows"**
-1. Schedule Trigger (every 5 minutes)
-2. Coda Node: List rows where `Uploaded Image` is empty AND `Link` is not empty
-3. Loop through results:
-   - Extract OG image or generate Microlink screenshot
-   - Update Coda row with image URL
+Instead of push (Coda → n8n), use pull (n8n polls Coda).
 
 **Advantages:**
 - No Coda Packs required
@@ -147,8 +195,6 @@ Instead of push (Coda → n8n), use pull (n8n polls Coda):
 - Leverages existing image fetching workflow
 - Polling interval configurable
 - More reliable than push-based triggers
-
-**Status:** Pending implementation
 
 ---
 
@@ -234,7 +280,7 @@ distractions/
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [ ] n8n polling workflow to detect new rows
+- [ ] n8n polling workflow to detect new rows (in progress)
 
 ---
 
@@ -270,6 +316,12 @@ Hosted on Vercel at https://distractions.vercel.app
 ---
 
 ## Changelog
+
+### January 18, 2026 (Later)
+- Started building "Distractions - Poll for New Rows" n8n workflow
+- Created Schedule Trigger node
+- Documented workflow architecture and implementation details
+- Added Coda query syntax for filtering rows with empty images
 
 ### January 18, 2026
 - Researched Coda automation limitations (no native outgoing HTTP)
