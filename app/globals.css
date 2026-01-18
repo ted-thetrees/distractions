@@ -107,6 +107,11 @@ body {
   padding: 15px 18px 0 18px;
 }
 
+/* Note cards - no media, just title and metadata */
+.card-note .card-body {
+  padding-top: 15px;
+}
+
 .card-meta {
   display: flex;
   align-items: center;
