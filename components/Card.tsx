@@ -99,15 +99,15 @@ export default function Card({ name, link, image }: CardProps) {
         )}
       </div>
       <div className="card-body">
-        <div className="card-meta">
-          <ContentTypeIcon type={contentType} />
-          <span>{getContentTypeLabel(contentType)}</span>
-        </div>
         <h2 className="card-title">
           <a href={link} target="_blank" rel="noopener noreferrer">
             {displayTitle}
           </a>
         </h2>
+        <div className="card-meta">
+          <ContentTypeIcon type={contentType} />
+          <span>{getContentTypeLabel(contentType)}</span>
+        </div>
       </div>
     </article>
   );
@@ -145,8 +145,8 @@ function getContentType(url: string): ContentType {
 
 function getContentTypeLabel(type: ContentType): string {
   switch (type) {
-    case 'x-profile': return 'X Profile';
-    case 'x-post': return 'X Post';
+    case 'x-profile': return 'X';
+    case 'x-post': return 'X';
     case 'youtube': return 'YouTube';
     case 'vimeo': return 'Vimeo';
     case 'website': return 'Website';
@@ -155,8 +155,8 @@ function getContentTypeLabel(type: ContentType): string {
 
 function ContentTypeIcon({ type }: { type: ContentType }) {
   const iconProps = {
-    width: 14,
-    height: 14,
+    width: 12,
+    height: 12,
     viewBox: '0 0 24 24',
     fill: 'currentColor',
     'aria-hidden': true as const,
