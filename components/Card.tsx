@@ -15,6 +15,7 @@ export default function Card({ name, link, image }: CardProps) {
   const video = detectVideo(link);
   const [ogImage, setOgImage] = useState<string | undefined>(undefined);
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
@@ -24,6 +25,7 @@ export default function Card({ name, link, image }: CardProps) {
   const displayImage = image || ogImage;
   const isLoading = (needsOgFetch || needsVideoTitle) && !fetched;
   const contentType = getContentType(link);
+  const brandDomain = getBrandDomain(link);
 
   useEffect(() => {
     if (fetched) return;
@@ -80,6 +82,18 @@ export default function Card({ name, link, image }: CardProps) {
     return () => observer.disconnect();
   }, [needsOgFetch, needsVideoTitle, fetched, link, name]);
 
+  // Fetch brand logo
+  useEffect(() => {
+    if (!brandDomain) return;
+    
+    fetch(`/api/brand-logo?domain=${encodeURIComponent(brandDomain)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.logo) setBrandLogo(data.logo);
+      })
+      .catch(() => {});
+  }, [brandDomain]);
+
   return (
     <article className="card" ref={cardRef}>
       <a href={link} target="_blank" rel="noopener noreferrer" className="card-link">
@@ -102,13 +116,43 @@ export default function Card({ name, link, image }: CardProps) {
         <div className="card-body">
           <h2 className="card-title">{displayTitle}</h2>
           <div className="card-meta">
-            <ContentTypeIcon type={contentType} />
+            {brandLogo ? (
+              <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
+            ) : (
+              <ContentTypeIcon type={contentType} />
+            )}
             <span>{getContentTypeLabel(contentType)}</span>
           </div>
         </div>
       </a>
     </article>
   );
+}
+
+function getBrandDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.hostname.replace(/^www\./, '');
+
+    // Map to canonical brand domains for Brandfetch
+    if (domain === 'x.com' || domain === 'twitter.com') {
+      return 'x.com';
+    }
+    if (domain.includes('youtube.com') || domain === 'youtu.be') {
+      return 'youtube.com';
+    }
+    if (domain.includes('vimeo.com')) {
+      return 'vimeo.com';
+    }
+    if (domain === 'music.apple.com') {
+      return 'music.apple.com';
+    }
+    
+    // For other websites, use the actual domain
+    return domain;
+  } catch {
+    return null;
+  }
 }
 
 function getContentType(url: string): ContentType {
