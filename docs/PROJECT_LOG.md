@@ -116,7 +116,7 @@ Automatically generates preview images for new Coda rows so users don't wait for
 **Workflow Name:** "Distractions - Poll for New Rows"  
 **Workflow ID:** `xjakavqlRrftsG4c`  
 **Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
-**Status:** Built but needs query filter fix before activation
+**Status:** ✅ Complete and validated - ready for activation
 
 ### Purpose
 Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
@@ -124,12 +124,12 @@ Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda
 ### Architecture
 
 ```
-Schedule Trigger (5 min) → Get Rows Needing Images (Coda) → Loop Over Items → Trigger Image Fetch (HTTP POST)
+Schedule Trigger (5 min) → Get Rows (Coda) → Filter Rows → Loop Over Items → Trigger Image Fetch (HTTP POST)
 ```
 
-### Build Status: COMPLETE (needs query fix)
+### Build Status: ✅ COMPLETE
 
-All 4 nodes are created and connected. Built using n8n MCP server API (not browser automation).
+All 5 nodes are created, connected, and validated. Built using n8n MCP server API.
 
 ### Node Configuration
 
@@ -137,35 +137,49 @@ All 4 nodes are created and connected. Built using n8n MCP server API (not brows
 - Interval: Every 5 minutes
 - typeVersion: 1.2
 
-**2. Get Rows Needing Images (Coda)** ✓ (needs query fix)
+**2. Get Rows Needing Images (Coda)** ✓
 - Doc ID: `x8nvwL5l1e` (Everything)
 - Table ID: `grid-BQE4pcweF2` (Distractions | Regulars | Browsing)
 - Operation: Get All Rows
+- Limit: 50 rows
 - Credentials: Coda account
 - Options: useColumnNames = true
-- **ISSUE:** Query filter syntax causing JSON parse errors
 
-**3. Loop Over Items** ✓
+**3. Filter Rows Needing Images** ✓ (NEW - January 18, 2026)
+- Combinator: AND
+- Condition 1: `Uploaded Image` is empty
+- Condition 2: `Link` is not empty
+- This filters to only rows that need image generation
+
+**4. Loop Over Items** ✓
 - Batch Size: 1
-- Processes each row individually
+- Processes each filtered row individually
 
-**4. Trigger Image Fetch (HTTP Request)** ✓
+**5. Trigger Image Fetch (HTTP Request)** ✓
 - Method: POST
 - URL: `https://n8n.listentothetrees.com/webhook/distractions-image`
 - Body: `{ row_id: $json.id, link: $json.Link }`
 
-### Current Issue (January 18, 2026)
+### Query Filter Solution (January 18, 2026)
 
-The Coda node's query filter is failing with "Unexpected non-whitespace character after JSON at position 3". Attempted query formats that failed:
-- `"Uploaded Image":"" AND Link.isNotBlank()`
-- `c-R5LP8UaCQf:"" AND c-V60iC4UaYP.IsNotBlank()`
+**Problem:** The Coda node's query parameter only supports simple `column:value` equality matching. It does NOT support:
+- Complex filters like "is blank" or "is not blank"
+- AND/OR logic between multiple conditions
+- Coda formula-style queries like `IsBlank()` or `IsNotBlank()`
 
-The workflow currently has no query filter (returns all rows with limit 10) which works but isn't optimal. Need to research correct n8n Coda query syntax.
+**Solution:** Added a Filter node after the Coda node that filters in n8n instead of Coda:
+- Filter type: n8n-nodes-base.filter (typeVersion 2)
+- Combinator: "and"
+- Conditions:
+  1. `$json['Uploaded Image']` is empty (string operation: empty)
+  2. `$json.Link` is not empty (string operation: notEmpty)
+
+This approach is more reliable and maintainable than trying to use Coda's limited query syntax.
 
 ### Next Steps
-1. Fix the Coda query filter syntax to properly filter for rows with empty Uploaded Image and non-empty Link
-2. Test the complete workflow end-to-end
-3. Activate the workflow for production use
+1. Test the workflow manually by triggering the Schedule node
+2. Verify filtered rows are processed correctly
+3. Activate the workflow for production polling
 
 ---
 
@@ -283,7 +297,8 @@ distractions/
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [x] n8n polling workflow structure complete (needs query fix)
+- [x] n8n polling workflow complete with Filter node
+- [x] Validates successfully - ready for activation
 
 ---
 
@@ -320,14 +335,21 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ## Changelog
 
-### January 18, 2026 (Night - Latest)
-- ✓ Built complete polling workflow using n8n MCP server API
+### January 18, 2026 (Night - FIXED)
+- ✅ **FIXED:** Query filter issue resolved by adding a Filter node
+- Added "Filter Rows Needing Images" node between Coda and Loop nodes
+- Filter conditions: `Uploaded Image` empty AND `Link` not empty
+- Increased row limit from 10 to 50 for better polling efficiency
+- Workflow now validates successfully (5 nodes, 4 connections)
+- **Key insight:** Coda node query only supports simple `column:value` equality - use n8n Filter node for complex logic
+- **Ready for:** Manual testing then production activation
+
+### January 18, 2026 (Night - Previous)
+- Built complete polling workflow using n8n MCP server API
 - Created all 4 nodes: Schedule Trigger → Get Rows Needing Images → Loop Over Items → Trigger Image Fetch
 - Fixed incorrect table ID (was grid-t9UDaCw93A, corrected to grid-BQE4pcweF2)
 - Workflow validates successfully (4 nodes, 3 connections)
-- **Remaining issue:** Coda query filter syntax causing JSON parse errors
-- Currently set to return 10 rows without filtering as a workaround
-- **Next:** Fix query filter syntax to filter for rows with empty Uploaded Image + non-empty Link
+- Identified Coda query filter syntax limitation
 
 ### January 18, 2026 (Evening)
 - Continued building "Distractions - Poll for New Rows" n8n workflow
