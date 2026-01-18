@@ -1,15 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
 
 :root {
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   
-  --bg: #f8f6f3;
+  --bg: #ffffff;
   --card-bg: #f2f2f7;
-  --text: #1a1a1a;
-  --text-muted: #8e8e93;
-  --border: transparent;
-  --shadow: none;
+  --text: #1c1c1e;
+  --text-secondary: #8e8e93;
   
   --spacing: 16px;
   --radius: 16px;
@@ -43,9 +40,8 @@ body {
 }
 
 .header h1 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 400;
+  font-size: 1.75rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
@@ -95,21 +91,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.8125rem;
 }
 
 .card-body {
-  padding: 12px 14px;
+  padding: 10px 12px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  margin-bottom: 2px;
+}
+
+.card-meta svg {
+  flex-shrink: 0;
 }
 
 .card-title {
-  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   color: var(--text);
-  margin-bottom: 2px;
 }
 
 .card-title a {
@@ -119,28 +126,12 @@ body {
 
 .card-title a:hover {
   text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
-
-.card-meta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  font-weight: 400;
-}
-
-.card-meta svg {
-  flex-shrink: 0;
-  opacity: 0.9;
 }
 
 .loading {
   text-align: center;
   padding: calc(var(--spacing) * 4);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -150,6 +141,6 @@ body {
   }
   
   .header h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 }
