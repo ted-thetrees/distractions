@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const html = await response.text();
 
     // Extract og:image
-    const imageMatch =
+    let imageMatch =
       html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
 
@@ -42,8 +42,15 @@ export async function GET(request: NextRequest) {
       html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i);
 
+    let image = imageMatch?.[1] || null;
+    
+    // Transform Apple Music images to square format
+    if (image && image.includes('mzstatic.com')) {
+      image = transformAppleMusicImage(image);
+    }
+
     return NextResponse.json({
-      image: imageMatch?.[1] || null,
+      image,
       title: titleMatch?.[1] || null,
     });
   } catch {
@@ -51,11 +58,16 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Transform Apple Music OG images (1200x630) to square album art
+function transformAppleMusicImage(url: string): string {
+  // Apple Music URLs look like: .../1200x630bf-60.jpg
+  // We can change the dimensions to get square: .../600x600bf-60.jpg
+  return url.replace(/\/\d+x\d+(bf-\d+\.jpg)$/, '/600x600$1');
+}
+
 async function fetchTwitterViaFxTwitter(url: string) {
   try {
     // Convert x.com/twitter.com URL to fxtwitter API URL
-    // e.g., https://x.com/user/status/123 -> https://api.fxtwitter.com/user/status/123
-    // e.g., https://x.com/user -> https://api.fxtwitter.com/user
     const path = url.replace(/^https?:\/\/(x\.com|twitter\.com)/i, '');
     const fxUrl = `https://api.fxtwitter.com${path}`;
     
@@ -101,7 +113,6 @@ async function fetchTwitterViaFxTwitter(url: string) {
       // It's a profile
       const user = data.user;
       const image = user.banner_url || user.avatar_url || null;
-      const name = user.name || user.screen_name || 'X';
       
       return NextResponse.json({
         image,
