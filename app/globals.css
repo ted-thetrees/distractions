@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500&display=swap');
+
+:root {
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  
+  --bg: #f8f6f3;
+  --card-bg: #ffffff;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --border: #e8e4df;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  
+  --spacing: 16px;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: var(--spacing);
+  padding-bottom: calc(var(--spacing) * 4);
+}
+
+.header {
+  text-align: center;
+  padding: calc(var(--spacing) * 2) 0;
+  margin-bottom: var(--spacing);
+}
+
+.header h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #e0dcd7;
+  overflow: hidden;
+}
+
+.card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-media iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.card-media.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.card-body {
+  padding: var(--spacing);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.loading {
+  text-align: center;
+  padding: calc(var(--spacing) * 4);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  body {
+    padding: calc(var(--spacing) * 2);
+  }
+  
+  .header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .card-body {
+    padding: calc(var(--spacing) * 1.25);
+  }
+  
+  .card-title {
+    font-size: 1.375rem;
+  }
+}
