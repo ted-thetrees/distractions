@@ -81,7 +81,7 @@ export default function Card({ name, link, image }: CardProps) {
 
   return (
     <article className="card" ref={cardRef}>
-      <div className="card-media">
+      <div className={`card-media${video ? ' has-video' : ''}`}>
         {video ? (
           <iframe
             src={video.embedUrl}
