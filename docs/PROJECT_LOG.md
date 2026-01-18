@@ -115,7 +115,7 @@ Automatically generates preview images for new Coda rows so users don't wait for
 
 **Workflow Name:** "Distractions - Poll for New Rows"  
 **Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
-**Status:** In Progress
+**Status:** In Progress (Step 1 of 5)
 
 ### Purpose
 Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
@@ -129,6 +129,20 @@ Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda
 │                 │    │  image + has URL)│    │                 │    │  webhook)        │
 └─────────────────┘    └──────────────────┘    └─────────────────┘    └──────────────────┘
 ```
+
+### Build Progress
+
+- [x] Step 1: Schedule Trigger node created
+- [ ] Step 1b: Configure Schedule Trigger to 5 minutes ← **CURRENT STEP**
+- [ ] Step 2: Add Coda node to list filtered rows
+- [ ] Step 3: Add Loop Over Items node
+- [ ] Step 4: Add HTTP Request node to call webhook
+- [ ] Step 5: Test and activate workflow
+
+### Current State (January 18, 2026 evening)
+- Schedule Trigger node exists in workflow
+- Node panel is open, Trigger Interval dropdown changed to "Minutes"
+- **Next action:** Click "Minutes" option to select it, then set value to 5
 
 ### Implementation Details
 
@@ -280,7 +294,7 @@ distractions/
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [ ] n8n polling workflow to detect new rows (in progress)
+- [ ] n8n polling workflow to detect new rows (Step 1b of 5)
 
 ---
 
@@ -316,6 +330,12 @@ Hosted on Vercel at https://distractions.vercel.app
 ---
 
 ## Changelog
+
+### January 18, 2026 (Evening)
+- Continued building "Distractions - Poll for New Rows" n8n workflow
+- Opened Schedule Trigger node configuration panel
+- Changed Trigger Interval dropdown from "Days" to "Minutes"
+- Next: Select Minutes option, set to 5, then add remaining nodes
 
 ### January 18, 2026 (Later)
 - Started building "Distractions - Poll for New Rows" n8n workflow
