@@ -11,8 +11,18 @@ interface CardProps {
 
 type ContentType = 'note' | 'x-profile' | 'x-post' | 'youtube' | 'vimeo' | 'apple-music-album' | 'apple-music-track' | 'website';
 
+function isValidUrl(str: string): boolean {
+  if (!str || str.trim() === '') return false;
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export default function Card({ name, link, image }: CardProps) {
-  const isNote = !link || link.trim() === '';
+  const isNote = !isValidUrl(link);
   const video = isNote ? null : detectVideo(link);
   const [ogImage, setOgImage] = useState<string | undefined>(undefined);
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
@@ -20,9 +30,13 @@ export default function Card({ name, link, image }: CardProps) {
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
+  // For notes, use the link field as the title if name is empty
+  const noteTitle = isNote ? (name || link || 'Note') : '';
   const needsOgFetch = !isNote && !video && !image;
   const needsVideoTitle = !isNote && video && !name;
-  const displayTitle = decodeHtmlEntities(name || fetchedTitle || (isNote ? 'Note' : extractTitleFromUrl(link)));
+  const displayTitle = isNote 
+    ? decodeHtmlEntities(noteTitle)
+    : decodeHtmlEntities(name || fetchedTitle || extractTitleFromUrl(link));
   const displayImage = image || ogImage;
   const isLoading = (needsOgFetch || needsVideoTitle) && !fetched;
   const contentType = getContentType(link);
@@ -99,7 +113,7 @@ export default function Card({ name, link, image }: CardProps) {
   const metaContent = (
     <>
       {isNote ? (
-        <NoteIcon />
+        <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />
       ) : brandLogo ? (
         <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
       ) : (
@@ -109,7 +123,7 @@ export default function Card({ name, link, image }: CardProps) {
     </>
   );
 
-  // Note cards - no link, just display
+  // Note cards - no link, just display title and metadata
   if (isNote) {
     return (
       <article className="card card-note" ref={cardRef}>
@@ -175,7 +189,7 @@ function getBrandDomain(url: string): string | null {
     const parsed = new URL(url);
     const domain = parsed.hostname.replace(/^www\./, '');
 
-    // Map to canonical brand domains for Brandfetch
+    // Map to canonical brand domains
     if (domain === 'x.com' || domain === 'twitter.com') {
       return 'x.com';
     }
@@ -197,7 +211,7 @@ function getBrandDomain(url: string): string | null {
 }
 
 function getContentType(url: string): ContentType {
-  if (!url || url.trim() === '') {
+  if (!isValidUrl(url)) {
     return 'note';
   }
   
@@ -255,12 +269,6 @@ function getContentTypeLabel(type: ContentType, domain?: string | null): string 
   }
 }
 
-function NoteIcon() {
-  return (
-    <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />
-  );
-}
-
 function ContentTypeIcon({ type }: { type: ContentType }) {
   const iconProps = {
     width: 14,
@@ -272,7 +280,7 @@ function ContentTypeIcon({ type }: { type: ContentType }) {
 
   switch (type) {
     case 'note':
-      return <NoteIcon />;
+      return <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />;
     case 'x-profile':
     case 'x-post':
       return (
@@ -294,7 +302,6 @@ function ContentTypeIcon({ type }: { type: ContentType }) {
       );
     case 'apple-music-album':
     case 'apple-music-track':
-      // Official Apple Music icon from Simple Icons
       return (
         <svg {...iconProps}>
           <path d="M23.994 6.124a9.23 9.23 0 0 0-.24-2.19c-.317-1.31-1.062-2.31-2.18-3.043a5.022 5.022 0 0 0-1.877-.726 10.496 10.496 0 0 0-1.564-.15c-.04-.003-.083-.01-.124-.013H5.99c-.042.003-.083.01-.124.013-.492.022-.978.072-1.454.178-.824.182-1.556.548-2.178 1.078-.81.691-1.336 1.566-1.625 2.586-.193.68-.282 1.376-.316 2.08-.001.037-.007.074-.009.111V18.12c.002.043.008.083.01.124.018.465.06.925.148 1.38.227.792.61 1.506 1.1 2.113.7.803 1.568 1.33 2.593 1.59.679.177 1.375.255 2.08.282.047.002.091.008.135.01h12.05c.037-.003.074-.008.11-.01.494-.02.984-.065 1.468-.16.786-.167 1.49-.49 2.106-.977.816-.64 1.386-1.465 1.706-2.448.19-.588.289-1.192.33-1.807.034-.502.03-1.003.03-1.505V6.12l-.001.003zM9.749 15.584V8.09l7.713-1.57v7.475c0 .378-.072.744-.216 1.09a2.603 2.603 0 0 1-.61.9 2.84 2.84 0 0 1-.925.605c-.353.143-.73.213-1.13.213-.401 0-.779-.07-1.13-.213a2.84 2.84 0 0 1-.926-.605 2.603 2.603 0 0 1-.61-.9 2.798 2.798 0 0 1-.216-1.09c0-.378.072-.744.216-1.09.144-.345.35-.651.61-.9a2.84 2.84 0 0 1 .926-.605c.351-.143.729-.213 1.13-.213.261 0 .515.035.76.103V9.396l-5.492 1.12v5.897c0 .378-.072.744-.216 1.09a2.603 2.603 0 0 1-.61.9 2.84 2.84 0 0 1-.925.605c-.353.143-.73.213-1.13.213-.401 0-.779-.07-1.13-.213a2.84 2.84 0 0 1-.926-.605 2.603 2.603 0 0 1-.61-.9 2.798 2.798 0 0 1-.216-1.09c0-.378.072-.744.216-1.09.144-.345.35-.651.61-.9a2.84 2.84 0 0 1 .926-.605c.351-.143.729-.213 1.13-.213.261 0 .515.035.76.103z" />
