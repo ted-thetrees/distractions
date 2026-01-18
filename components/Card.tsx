@@ -9,27 +9,28 @@ interface CardProps {
   image?: string;
 }
 
-type ContentType = 'x-profile' | 'x-post' | 'youtube' | 'vimeo' | 'apple-music-album' | 'apple-music-track' | 'website';
+type ContentType = 'note' | 'x-profile' | 'x-post' | 'youtube' | 'vimeo' | 'apple-music-album' | 'apple-music-track' | 'website';
 
 export default function Card({ name, link, image }: CardProps) {
-  const video = detectVideo(link);
+  const isNote = !link || link.trim() === '';
+  const video = isNote ? null : detectVideo(link);
   const [ogImage, setOgImage] = useState<string | undefined>(undefined);
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
-  const needsOgFetch = !video && !image;
-  const needsVideoTitle = video && !name;
-  const displayTitle = decodeHtmlEntities(name || fetchedTitle || extractTitleFromUrl(link));
+  const needsOgFetch = !isNote && !video && !image;
+  const needsVideoTitle = !isNote && video && !name;
+  const displayTitle = decodeHtmlEntities(name || fetchedTitle || (isNote ? 'Note' : extractTitleFromUrl(link)));
   const displayImage = image || ogImage;
   const isLoading = (needsOgFetch || needsVideoTitle) && !fetched;
   const contentType = getContentType(link);
-  const brandDomain = getBrandDomain(link);
-  const websiteDomain = getWebsiteDomain(link);
+  const brandDomain = isNote ? null : getBrandDomain(link);
+  const websiteDomain = isNote ? null : getWebsiteDomain(link);
 
   useEffect(() => {
-    if (fetched) return;
+    if (isNote || fetched) return;
     if (!needsOgFetch && !needsVideoTitle) {
       setFetched(true);
       return;
@@ -81,11 +82,11 @@ export default function Card({ name, link, image }: CardProps) {
     }
 
     return () => observer.disconnect();
-  }, [needsOgFetch, needsVideoTitle, fetched, link, name]);
+  }, [isNote, needsOgFetch, needsVideoTitle, fetched, link, name]);
 
   // Fetch brand logo
   useEffect(() => {
-    if (!brandDomain) return;
+    if (isNote || !brandDomain) return;
     
     fetch(`/api/brand-logo?domain=${encodeURIComponent(brandDomain)}`)
       .then((res) => res.json())
@@ -93,11 +94,13 @@ export default function Card({ name, link, image }: CardProps) {
         if (data.logo) setBrandLogo(data.logo);
       })
       .catch(() => {});
-  }, [brandDomain]);
+  }, [isNote, brandDomain]);
 
   const metaContent = (
     <>
-      {brandLogo ? (
+      {isNote ? (
+        <NoteIcon />
+      ) : brandLogo ? (
         <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
       ) : (
         <ContentTypeIcon type={contentType} />
@@ -105,6 +108,18 @@ export default function Card({ name, link, image }: CardProps) {
       <span>{getContentTypeLabel(contentType, websiteDomain)}</span>
     </>
   );
+
+  // Note cards - no link, just display
+  if (isNote) {
+    return (
+      <article className="card card-note" ref={cardRef}>
+        <div className="card-body">
+          <h2 className="card-title">{displayTitle}</h2>
+        </div>
+        <div className="card-meta">{metaContent}</div>
+      </article>
+    );
+  }
 
   return (
     <article className="card" ref={cardRef}>
@@ -182,6 +197,10 @@ function getBrandDomain(url: string): string | null {
 }
 
 function getContentType(url: string): ContentType {
+  if (!url || url.trim() === '') {
+    return 'note';
+  }
+  
   try {
     const parsed = new URL(url);
     const domain = parsed.hostname.replace(/^www\./, '');
@@ -219,12 +238,13 @@ function getContentType(url: string): ContentType {
 
     return 'website';
   } catch {
-    return 'website';
+    return 'note';
   }
 }
 
 function getContentTypeLabel(type: ContentType, domain?: string | null): string {
   switch (type) {
+    case 'note': return 'Note';
     case 'x-profile': return 'Profile';
     case 'x-post': return 'Post';
     case 'youtube': return 'YouTube';
@@ -233,6 +253,12 @@ function getContentTypeLabel(type: ContentType, domain?: string | null): string 
     case 'apple-music-track': return 'Track';
     case 'website': return domain || 'Website';
   }
+}
+
+function NoteIcon() {
+  return (
+    <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />
+  );
 }
 
 function ContentTypeIcon({ type }: { type: ContentType }) {
@@ -245,6 +271,8 @@ function ContentTypeIcon({ type }: { type: ContentType }) {
   };
 
   switch (type) {
+    case 'note':
+      return <NoteIcon />;
     case 'x-profile':
     case 'x-post':
       return (
