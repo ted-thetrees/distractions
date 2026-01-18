@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { detectVideo } from '@/lib/unfurl';
+import { detectVideo, getYouTubeId, getVimeoId } from '@/lib/unfurl';
 
 interface CardProps {
   name: string;
@@ -12,30 +12,61 @@ interface CardProps {
 export default function Card({ name, link, image }: CardProps) {
   const video = detectVideo(link);
   const [ogImage, setOgImage] = useState<string | undefined>(undefined);
-  const [ogTitle, setOgTitle] = useState<string | null>(null);
+  const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
   const needsOgFetch = !video && !image;
-  const displayTitle = decodeHtmlEntities(name || ogTitle || extractTitleFromUrl(link));
+  const needsVideoTitle = video && !name;
+  const displayTitle = decodeHtmlEntities(name || fetchedTitle || extractTitleFromUrl(link));
   const displayImage = image || ogImage;
-  const isLoading = needsOgFetch && !fetched;
+  const isLoading = (needsOgFetch || needsVideoTitle) && !fetched;
 
   useEffect(() => {
-    if (!needsOgFetch || fetched) return;
+    if (fetched) return;
+    if (!needsOgFetch && !needsVideoTitle) {
+      setFetched(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
           observer.disconnect();
-          fetch(`/api/og?url=${encodeURIComponent(link)}`)
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.image) setOgImage(data.image);
-              if (data.title && !name) setOgTitle(data.title);
-            })
-            .catch(() => {})
-            .finally(() => setFetched(true));
+          
+          if (needsVideoTitle) {
+            // Fetch video title from oEmbed
+            const youtubeId = getYouTubeId(link);
+            const vimeoId = getVimeoId(link);
+            
+            let apiUrl: string;
+            if (youtubeId) {
+              apiUrl = `/api/video-title?type=youtube&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${youtubeId}`)}`;
+            } else if (vimeoId) {
+              apiUrl = `/api/video-title?type=vimeo&url=${encodeURIComponent(`https://vimeo.com/${vimeoId}`)}`;
+            } else {
+              setFetched(true);
+              return;
+            }
+            
+            fetch(apiUrl)
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.title) setFetchedTitle(data.title);
+              })
+              .catch(() => {})
+              .finally(() => setFetched(true));
+          } else if (needsOgFetch) {
+            // Fetch OG data
+            fetch(`/api/og?url=${encodeURIComponent(link)}`)
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.image) setOgImage(data.image);
+                if (data.title && !name) setFetchedTitle(data.title);
+              })
+              .catch(() => {})
+              .finally(() => setFetched(true));
+          }
         }
       },
       { rootMargin: '200px' }
@@ -46,7 +77,7 @@ export default function Card({ name, link, image }: CardProps) {
     }
 
     return () => observer.disconnect();
-  }, [needsOgFetch, fetched, link, name]);
+  }, [needsOgFetch, needsVideoTitle, fetched, link, name]);
 
   return (
     <article className="card" ref={cardRef}>
