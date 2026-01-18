@@ -11,22 +11,23 @@ interface CardProps {
 
 export default function Card({ name, link, image }: CardProps) {
   const video = detectVideo(link);
-  const [ogImage, setOgImage] = useState<string | null>(null);
+  const [ogImage, setOgImage] = useState<string | undefined>(undefined);
   const [ogTitle, setOgTitle] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
   const needsOgFetch = !video && !image;
   const displayTitle = decodeHtmlEntities(name || ogTitle || extractTitleFromUrl(link));
   const displayImage = image || ogImage;
+  const isLoading = needsOgFetch && !fetched;
 
   useEffect(() => {
-    if (!needsOgFetch || loading || ogImage !== null) return;
+    if (!needsOgFetch || fetched) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setLoading(true);
+          observer.disconnect();
           fetch(`/api/og?url=${encodeURIComponent(link)}`)
             .then((res) => res.json())
             .then((data) => {
@@ -34,8 +35,7 @@ export default function Card({ name, link, image }: CardProps) {
               if (data.title && !name) setOgTitle(data.title);
             })
             .catch(() => {})
-            .finally(() => setLoading(false));
-          observer.disconnect();
+            .finally(() => setFetched(true));
         }
       },
       { rootMargin: '200px' }
@@ -46,7 +46,7 @@ export default function Card({ name, link, image }: CardProps) {
     }
 
     return () => observer.disconnect();
-  }, [needsOgFetch, loading, ogImage, link, name]);
+  }, [needsOgFetch, fetched, link, name]);
 
   return (
     <article className="card" ref={cardRef}>
@@ -60,7 +60,7 @@ export default function Card({ name, link, image }: CardProps) {
           />
         ) : displayImage ? (
           <img src={displayImage} alt={displayTitle} loading="lazy" />
-        ) : loading ? (
+        ) : isLoading ? (
           <div className="placeholder">Loading...</div>
         ) : (
           <div className="placeholder">No preview</div>
