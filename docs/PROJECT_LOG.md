@@ -115,7 +115,7 @@ Automatically generates preview images for new Coda rows so users don't wait for
 
 **Workflow Name:** "Distractions - Poll for New Rows"  
 **Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
-**Status:** In Progress (Step 1 of 5)
+**Status:** In Progress (Step 2 of 5)
 
 ### Purpose
 Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
@@ -133,25 +133,28 @@ Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda
 ### Build Progress
 
 - [x] Step 1: Schedule Trigger node created
-- [ ] Step 1b: Configure Schedule Trigger to 5 minutes ← **CURRENT STEP**
-- [ ] Step 2: Add Coda node to list filtered rows
+- [x] Step 1b: Configure Schedule Trigger to 5 minutes ✓
+- [ ] Step 2: Add Coda node to list filtered rows ← **CURRENT STEP**
 - [ ] Step 3: Add Loop Over Items node
 - [ ] Step 4: Add HTTP Request node to call webhook
 - [ ] Step 5: Test and activate workflow
 
-### Current State (January 18, 2026 evening)
-- Schedule Trigger node exists in workflow
-- Node panel is open, Trigger Interval dropdown changed to "Minutes"
-- **Next action:** Click "Minutes" option to select it, then set value to 5
+### Current State (January 18, 2026 evening - latest)
+- Schedule Trigger node is fully configured (Minutes interval = 5)
+- Clicked "+" to add next node
+- Searched for "Coda" in node search
+- Coda actions panel is now open showing available actions
+- "Get all rows" is visible under TABLE ACTIONS
+- **Next action:** Click "Get all rows" to add the Coda node, then configure it with Doc ID, Table ID, and filter query
 
 ### Implementation Details
 
-**1. Schedule Trigger**
+**1. Schedule Trigger** ✓ COMPLETE
 - Interval: Every 5 minutes
 - Type: Minutes
 
-**2. Coda Node Configuration**
-- Operation: Get Many Rows
+**2. Coda Node Configuration** (NEXT TO CONFIGURE)
+- Operation: Get All Rows (under TABLE ACTIONS)
 - Doc ID: `x8nvwL5l1e`
 - Table ID: `grid-t9UDaCw93A`
 - Query: Filter for rows where:
@@ -294,7 +297,7 @@ distractions/
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [ ] n8n polling workflow to detect new rows (Step 1b of 5)
+- [ ] n8n polling workflow to detect new rows (Step 2 of 5 - adding Coda node)
 
 ---
 
@@ -331,11 +334,17 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ## Changelog
 
+### January 18, 2026 (Evening - Latest)
+- ✓ Completed Schedule Trigger configuration (5-minute interval)
+- Clicked "+" to add next node after Schedule Trigger
+- Searched for "Coda" in node panel
+- Coda actions panel is open, showing "Get all rows" option
+- **Next:** Click "Get all rows", configure Doc ID/Table ID, add filter query
+
 ### January 18, 2026 (Evening)
 - Continued building "Distractions - Poll for New Rows" n8n workflow
 - Opened Schedule Trigger node configuration panel
 - Changed Trigger Interval dropdown from "Days" to "Minutes"
-- Next: Select Minutes option, set to 5, then add remaining nodes
 
 ### January 18, 2026 (Later)
 - Started building "Distractions - Poll for New Rows" n8n workflow
