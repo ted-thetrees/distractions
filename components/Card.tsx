@@ -196,12 +196,10 @@ function ContentTypeIcon({ type }: { type: ContentType }) {
       );
     case 'apple-music-album':
     case 'apple-music-track':
-      // Music note icon (beamed eighth notes)
+      // Apple Music note - extracted from official icon
       return (
-        <svg {...iconProps} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18V5l12-2v13" />
-          <circle cx="6" cy="18" r="3" fill="currentColor" />
-          <circle cx="18" cy="16" r="3" fill="currentColor" />
+        <svg {...iconProps} viewBox="0 0 361 361">
+          <path d="M255.5 0h-150C47.3 0 0 47.3 0 105.5v150C0 313.7 47.3 361 105.5 361h150c58.2 0 105.5-47.3 105.5-105.5v-150C361 47.3 313.7 0 255.5 0zm28.2 267.5c0 12.3-5.6 23.1-14.3 30.3-8.8 7.2-20.3 11-32.8 11-24 0-43.5-17.3-43.5-38.6 0-21.3 19.5-38.6 43.5-38.6 5.7 0 11.1.9 16.1 2.5V138.8l-95.5 19.8v115.6c0 12.3-5.6 23.1-14.3 30.3-8.8 7.2-20.3 11-32.8 11-24 0-43.5-17.3-43.5-38.6 0-21.3 19.5-38.6 43.5-38.6 5.7 0 11.1.9 16.1 2.5V118.5c0-8.8 5.5-16.4 13.6-18.5l114.5-23.8c5-.9 10.2.4 14 3.7 3.9 3.3 6.1 8.1 6.1 13.2v174.4z" />
         </svg>
       );
     case 'website':
