@@ -59,6 +59,12 @@ body {
   overflow: hidden;
 }
 
+.card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .card-media {
   position: relative;
   width: 100%;
@@ -117,15 +123,6 @@ body {
   font-weight: 600;
   line-height: 1.3;
   color: var(--text);
-}
-
-.card-title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.card-title a:hover {
-  text-decoration: underline;
 }
 
 .loading {
