@@ -100,11 +100,11 @@ export default function Card({ name, link, image }: CardProps) {
           )}
         </div>
         <div className="card-body">
+          <h2 className="card-title">{displayTitle}</h2>
           <div className="card-meta">
             <ContentTypeIcon type={contentType} />
             <span>{getContentTypeLabel(contentType)}</span>
           </div>
-          <h2 className="card-title">{displayTitle}</h2>
         </div>
       </a>
     </article>
@@ -167,8 +167,8 @@ function getContentTypeLabel(type: ContentType): string {
 
 function ContentTypeIcon({ type }: { type: ContentType }) {
   const iconProps = {
-    width: 11,
-    height: 11,
+    width: 14,
+    height: 14,
     viewBox: '0 0 24 24',
     fill: 'currentColor',
     'aria-hidden': true as const,
