@@ -118,6 +118,13 @@ body {
   flex-shrink: 0;
 }
 
+.card-meta .brand-logo {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .card-title {
   font-size: 0.9375rem;
   font-weight: 600;
