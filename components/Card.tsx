@@ -113,7 +113,7 @@ export default function Card({ name, link, image }: CardProps) {
   const metaContent = (
     <>
       {isNote ? (
-        <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />
+        <img src="/note-icon.svg" alt="" className="brand-logo" width={14} height={14} />
       ) : brandLogo ? (
         <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
       ) : (
@@ -280,7 +280,7 @@ function ContentTypeIcon({ type }: { type: ContentType }) {
 
   switch (type) {
     case 'note':
-      return <img src="/note-icon.webp" alt="" className="brand-logo" width={14} height={14} />;
+      return <img src="/note-icon.svg" alt="" className="brand-logo" width={14} height={14} />;
     case 'x-profile':
     case 'x-post':
       return (
