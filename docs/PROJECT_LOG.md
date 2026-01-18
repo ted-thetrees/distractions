@@ -109,9 +109,46 @@ Automatically generates preview images for new Coda rows so users don't wait for
 - **Free tier:** 50 requests/day (soft limit)
 - **Endpoint:** `https://api.microlink.io/?url={url}&screenshot=true&embed=screenshot.url`
 
-### Coda Automation (Pending Setup)
-Trigger: "When a row is added" to Distractions table  
-Action: POST to webhook with `{"row_id": "{row ID}", "link": "{Link}"}`
+---
+
+## Coda Automation Research (January 18, 2026)
+
+### Problem
+Need to trigger the n8n workflow when new rows are added to the Coda table.
+
+### Key Findings
+**Coda CANNOT natively send outgoing HTTP POST requests from automations.**
+
+- Coda's "webhook" feature is INCOMING only (receives webhooks to trigger Coda automations)
+- Community thread from Feb 2022 confirms: "UI actions like 'OpenWindow' can't run on the server"
+- No built-in HTTP request action in Coda automations
+- Would require installing third-party Coda Pack (e.g., "Badawa n8n Webhook Pack")
+
+### Options Considered
+1. **Third-party Coda Pack** — Rejected (avoiding pack dependencies)
+2. **Custom Coda Pack** — Too complex for this use case
+3. **Zapier/Make intermediary** — Adds unnecessary layer
+4. **n8n polling** — ✓ Selected approach
+
+### Decision: Polling-Based Approach
+
+Instead of push (Coda → n8n), use pull (n8n polls Coda):
+
+**New Workflow: "Distractions - Poll for New Rows"**
+1. Schedule Trigger (every 5 minutes)
+2. Coda Node: List rows where `Uploaded Image` is empty AND `Link` is not empty
+3. Loop through results:
+   - Extract OG image or generate Microlink screenshot
+   - Update Coda row with image URL
+
+**Advantages:**
+- No Coda Packs required
+- Uses existing Coda API integration in n8n
+- Leverages existing image fetching workflow
+- Polling interval configurable
+- More reliable than push-based triggers
+
+**Status:** Pending implementation
 
 ---
 
@@ -192,12 +229,12 @@ distractions/
 - [x] Natural aspect ratios for images
 - [x] Apple Music album art URL transformation
 
-### Phase 5: Preview Image Generation ✓
+### Phase 5: Preview Image Generation (In Progress)
 - [x] n8n workflow for auto-generating images
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [ ] Coda automation trigger (pending setup)
+- [ ] n8n polling workflow to detect new rows
 
 ---
 
@@ -234,7 +271,12 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ## Changelog
 
-### January 2026
+### January 18, 2026
+- Researched Coda automation limitations (no native outgoing HTTP)
+- Decided on polling approach instead of push-based triggers
+- Updated documentation with findings
+
+### January 2026 (Earlier)
 - Initial project creation
 - Next.js setup with Coda integration
 - Card component with video detection
