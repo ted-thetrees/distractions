@@ -8,6 +8,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Check if it's an X/Twitter URL
+    const isTwitter = /^https?:\/\/(x\.com|twitter\.com)\//i.test(url);
+    
+    if (isTwitter) {
+      return await fetchTwitterOEmbed(url);
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -41,5 +48,52 @@ export async function GET(request: NextRequest) {
     });
   } catch {
     return NextResponse.json({ error: 'Request failed' }, { status: 500 });
+  }
+}
+
+async function fetchTwitterOEmbed(url: string) {
+  try {
+    // Check if it's a tweet (has /status/) or a profile
+    const isTweet = /\/status\/\d+/.test(url);
+    
+    if (isTweet) {
+      // Use Twitter oEmbed for tweets
+      const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`;
+      
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(oembedUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Extract author name and clean up the HTML to get tweet text
+        const authorName = data.author_name || 'X';
+        // The html contains the tweet text, extract a preview
+        const htmlContent = data.html || '';
+        const tweetMatch = htmlContent.match(/<p[^>]*>([^<]+)<\/p>/);
+        const tweetText = tweetMatch ? tweetMatch[1].slice(0, 100) : '';
+        
+        return NextResponse.json({
+          image: null, // Twitter oEmbed doesn't provide images
+          title: tweetText ? `${authorName}: "${tweetText}${tweetText.length >= 100 ? '...' : ''}"` : `Post by ${authorName}`,
+        });
+      }
+    }
+    
+    // For profiles or failed oEmbed, extract username from URL
+    const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/\?]+)/i);
+    if (usernameMatch) {
+      const username = usernameMatch[1];
+      return NextResponse.json({
+        image: null,
+        title: `@${username} on X`,
+      });
+    }
+    
+    return NextResponse.json({ image: null, title: 'X' });
+  } catch {
+    return NextResponse.json({ image: null, title: 'X' });
   }
 }
