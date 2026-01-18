@@ -26,6 +26,7 @@ export default function Card({ name, link, image }: CardProps) {
   const isLoading = (needsOgFetch || needsVideoTitle) && !fetched;
   const contentType = getContentType(link);
   const brandDomain = getBrandDomain(link);
+  const websiteDomain = getWebsiteDomain(link);
 
   useEffect(() => {
     if (fetched) return;
@@ -94,6 +95,17 @@ export default function Card({ name, link, image }: CardProps) {
       .catch(() => {});
   }, [brandDomain]);
 
+  const metaContent = (
+    <>
+      {brandLogo ? (
+        <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
+      ) : (
+        <ContentTypeIcon type={contentType} />
+      )}
+      <span>{getContentTypeLabel(contentType, websiteDomain)}</span>
+    </>
+  );
+
   return (
     <article className="card" ref={cardRef}>
       <a href={link} target="_blank" rel="noopener noreferrer" className="card-link">
@@ -115,18 +127,32 @@ export default function Card({ name, link, image }: CardProps) {
         </div>
         <div className="card-body">
           <h2 className="card-title">{displayTitle}</h2>
-          <div className="card-meta">
-            {brandLogo ? (
-              <img src={brandLogo} alt="" className="brand-logo" width={14} height={14} />
-            ) : (
-              <ContentTypeIcon type={contentType} />
-            )}
-            <span>{getContentTypeLabel(contentType)}</span>
-          </div>
         </div>
       </a>
+      {contentType === 'website' && websiteDomain ? (
+        <a 
+          href={`https://${websiteDomain}`} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="card-meta card-meta-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {metaContent}
+        </a>
+      ) : (
+        <div className="card-meta">{metaContent}</div>
+      )}
     </article>
   );
+}
+
+function getWebsiteDomain(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
 }
 
 function getBrandDomain(url: string): string | null {
@@ -197,7 +223,7 @@ function getContentType(url: string): ContentType {
   }
 }
 
-function getContentTypeLabel(type: ContentType): string {
+function getContentTypeLabel(type: ContentType, domain?: string | null): string {
   switch (type) {
     case 'x-profile': return 'Profile';
     case 'x-post': return 'Post';
@@ -205,7 +231,7 @@ function getContentTypeLabel(type: ContentType): string {
     case 'vimeo': return 'Vimeo';
     case 'apple-music-album': return 'Album';
     case 'apple-music-track': return 'Track';
-    case 'website': return 'Website';
+    case 'website': return domain || 'Website';
   }
 }
 
