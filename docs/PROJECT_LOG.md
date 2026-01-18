@@ -34,7 +34,7 @@ Distractions is a simple, single-column mobile website that displays a feed of c
 
 ### Coda Table Structure
 - **Doc ID:** `x8nvwL5l1e` ("Everything")
-- **Table ID:** `grid-t9UDaCw93A` ("Distractions | Regulars | Browsing")
+- **Table ID:** `grid-BQE4pcweF2` ("Distractions | Regulars | Browsing")
 
 ### Columns Used
 | Column | Field ID | Purpose |
@@ -114,8 +114,9 @@ Automatically generates preview images for new Coda rows so users don't wait for
 ## n8n Workflow: Poll for New Rows
 
 **Workflow Name:** "Distractions - Poll for New Rows"  
+**Workflow ID:** `xjakavqlRrftsG4c`  
 **Workflow URL:** `https://n8n.listentothetrees.com/workflow/xjakavqlRrftsG4c`  
-**Status:** In Progress (Step 2 of 5)
+**Status:** Built but needs query filter fix before activation
 
 ### Purpose
 Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda periodically to find rows that need preview images generated.
@@ -123,63 +124,48 @@ Since Coda cannot send outgoing HTTP requests natively, this workflow polls Coda
 ### Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
-│ Schedule        │───▶│ Coda: List Rows  │───▶│ Loop Over Items │───▶│ HTTP Request     │
-│ (every 5 min)   │    │ (filter: empty   │    │                 │    │ (call existing   │
-│                 │    │  image + has URL)│    │                 │    │  webhook)        │
-└─────────────────┘    └──────────────────┘    └─────────────────┘    └──────────────────┘
+Schedule Trigger (5 min) → Get Rows Needing Images (Coda) → Loop Over Items → Trigger Image Fetch (HTTP POST)
 ```
 
-### Build Progress
+### Build Status: COMPLETE (needs query fix)
 
-- [x] Step 1: Schedule Trigger node created
-- [x] Step 1b: Configure Schedule Trigger to 5 minutes ✓
-- [ ] Step 2: Add Coda node to list filtered rows ← **CURRENT STEP**
-- [ ] Step 3: Add Loop Over Items node
-- [ ] Step 4: Add HTTP Request node to call webhook
-- [ ] Step 5: Test and activate workflow
+All 4 nodes are created and connected. Built using n8n MCP server API (not browser automation).
 
-### Current State (January 18, 2026 evening - latest)
-- Schedule Trigger node is fully configured (Minutes interval = 5)
-- Clicked "+" to add next node
-- Searched for "Coda" in node search
-- Coda actions panel is now open showing available actions
-- "Get all rows" is visible under TABLE ACTIONS
-- **Next action:** Click "Get all rows" to add the Coda node, then configure it with Doc ID, Table ID, and filter query
+### Node Configuration
 
-### Implementation Details
-
-**1. Schedule Trigger** ✓ COMPLETE
+**1. Schedule Trigger** ✓
 - Interval: Every 5 minutes
-- Type: Minutes
+- typeVersion: 1.2
 
-**2. Coda Node Configuration** (NEXT TO CONFIGURE)
-- Operation: Get All Rows (under TABLE ACTIONS)
-- Doc ID: `x8nvwL5l1e`
-- Table ID: `grid-t9UDaCw93A`
-- Query: Filter for rows where:
-  - `Uploaded Image` (c-R5LP8UaCQf) is empty
-  - `Link` (c-V60iC4UaYP) is not empty
+**2. Get Rows Needing Images (Coda)** ✓ (needs query fix)
+- Doc ID: `x8nvwL5l1e` (Everything)
+- Table ID: `grid-BQE4pcweF2` (Distractions | Regulars | Browsing)
+- Operation: Get All Rows
+- Credentials: Coda account
+- Options: useColumnNames = true
+- **ISSUE:** Query filter syntax causing JSON parse errors
 
-**3. Loop Over Items**
+**3. Loop Over Items** ✓
+- Batch Size: 1
 - Processes each row individually
-- Extracts `row_id` and `link` values
 
-**4. HTTP Request to Existing Webhook**
-- URL: `https://n8n.listentothetrees.com/webhook/distractions-image`
+**4. Trigger Image Fetch (HTTP Request)** ✓
 - Method: POST
-- Body: `{ "row_id": "{{row_id}}", "link": "{{link}}" }`
+- URL: `https://n8n.listentothetrees.com/webhook/distractions-image`
+- Body: `{ row_id: $json.id, link: $json.Link }`
 
-### Coda Query Syntax
-To filter rows in n8n's Coda node, use the query parameter:
-```
-Uploaded Image:"" AND Link.isNotBlank()
-```
+### Current Issue (January 18, 2026)
 
-Or using column IDs:
-```
-c-R5LP8UaCQf:"" AND c-V60iC4UaYP.isNotBlank()
-```
+The Coda node's query filter is failing with "Unexpected non-whitespace character after JSON at position 3". Attempted query formats that failed:
+- `"Uploaded Image":"" AND Link.isNotBlank()`
+- `c-R5LP8UaCQf:"" AND c-V60iC4UaYP.IsNotBlank()`
+
+The workflow currently has no query filter (returns all rows with limit 10) which works but isn't optimal. Need to research correct n8n Coda query syntax.
+
+### Next Steps
+1. Fix the Coda query filter syntax to properly filter for rows with empty Uploaded Image and non-empty Link
+2. Test the complete workflow end-to-end
+3. Activate the workflow for production use
 
 ---
 
@@ -292,12 +278,12 @@ distractions/
 - [x] Natural aspect ratios for images
 - [x] Apple Music album art URL transformation
 
-### Phase 5: Preview Image Generation (In Progress)
+### Phase 5: Preview Image Generation ✓
 - [x] n8n workflow for auto-generating images
 - [x] OG image extraction
 - [x] Microlink screenshot fallback
 - [x] Coda row update via API
-- [ ] n8n polling workflow to detect new rows (Step 2 of 5 - adding Coda node)
+- [x] n8n polling workflow structure complete (needs query fix)
 
 ---
 
@@ -334,17 +320,19 @@ Hosted on Vercel at https://distractions.vercel.app
 
 ## Changelog
 
-### January 18, 2026 (Evening - Latest)
-- ✓ Completed Schedule Trigger configuration (5-minute interval)
-- Clicked "+" to add next node after Schedule Trigger
-- Searched for "Coda" in node panel
-- Coda actions panel is open, showing "Get all rows" option
-- **Next:** Click "Get all rows", configure Doc ID/Table ID, add filter query
+### January 18, 2026 (Night - Latest)
+- ✓ Built complete polling workflow using n8n MCP server API
+- Created all 4 nodes: Schedule Trigger → Get Rows Needing Images → Loop Over Items → Trigger Image Fetch
+- Fixed incorrect table ID (was grid-t9UDaCw93A, corrected to grid-BQE4pcweF2)
+- Workflow validates successfully (4 nodes, 3 connections)
+- **Remaining issue:** Coda query filter syntax causing JSON parse errors
+- Currently set to return 10 rows without filtering as a workaround
+- **Next:** Fix query filter syntax to filter for rows with empty Uploaded Image + non-empty Link
 
 ### January 18, 2026 (Evening)
 - Continued building "Distractions - Poll for New Rows" n8n workflow
-- Opened Schedule Trigger node configuration panel
-- Changed Trigger Interval dropdown from "Days" to "Minutes"
+- Configured Schedule Trigger (5-minute interval)
+- Searched for Coda node in n8n interface
 
 ### January 18, 2026 (Later)
 - Started building "Distractions - Poll for New Rows" n8n workflow
