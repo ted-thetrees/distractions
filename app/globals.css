@@ -103,7 +103,7 @@ body {
 }
 
 .card-body {
-  padding: 15px 18px;
+  padding: 15px 18px 0 18px;
 }
 
 .card-meta {
@@ -112,9 +112,17 @@ body {
   gap: 5px;
   color: var(--text-secondary);
   font-size: 0.9rem;
-  margin-top: 10px;
+  margin: 10px 18px 15px 18px;
   padding-top: 10px;
   border-top: 1px solid var(--divider);
+}
+
+.card-meta-link {
+  text-decoration: none;
+}
+
+.card-meta-link:hover {
+  color: var(--text);
 }
 
 .card-meta svg {
