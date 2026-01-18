@@ -7,6 +7,7 @@
   --card-bg: #f2f2f7;
   --text: #1c1c1e;
   --text-secondary: #8e8e93;
+  --divider: #d1d1d6;
   
   --spacing: 16px;
   --radius: 16px;
@@ -102,7 +103,7 @@ body {
 }
 
 .card-body {
-  padding: 10px 12px;
+  padding: 15px 18px;
 }
 
 .card-meta {
@@ -111,7 +112,9 @@ body {
   gap: 5px;
   color: var(--text-secondary);
   font-size: 0.9rem;
-  margin-top: 4px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--divider);
 }
 
 .card-meta svg {
