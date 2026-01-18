@@ -17,7 +17,7 @@ export default function Card({ name, link, image }: CardProps) {
   const cardRef = useRef<HTMLElement>(null);
 
   const needsOgFetch = !video && !image;
-  const displayTitle = name || ogTitle || extractTitleFromUrl(link);
+  const displayTitle = decodeHtmlEntities(name || ogTitle || extractTitleFromUrl(link));
   const displayImage = image || ogImage;
 
   useEffect(() => {
@@ -77,22 +77,60 @@ export default function Card({ name, link, image }: CardProps) {
   );
 }
 
+// Decode common HTML entities
+function decodeHtmlEntities(text: string): string {
+  const entities: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+    '&nbsp;': ' ',
+    '&#x27;': "'",
+    '&#x2F;': '/',
+    '&ndash;': '–',
+    '&mdash;': '—',
+  };
+  
+  return text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
+}
+
 function extractTitleFromUrl(url: string): string {
   try {
     const parsed = new URL(url);
     const domain = parsed.hostname.replace(/^www\./, '');
     const path = parsed.pathname.replace(/\/$/, '');
 
+    // For YouTube, just use "YouTube" as fallback
+    if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+      return 'YouTube';
+    }
+
+    // For Vimeo, just use "Vimeo" as fallback
+    if (domain.includes('vimeo.com')) {
+      return 'Vimeo';
+    }
+
     if (path && path !== '/') {
       const segments = path.split('/').filter(Boolean);
       const lastSegment = segments[segments.length - 1];
+      
+      // If the segment is mostly numbers (like Instagram post IDs), use domain instead
+      if (/^\d+$/.test(lastSegment) || lastSegment.length > 15 && /^[a-zA-Z0-9_-]+$/.test(lastSegment)) {
+        // Capitalize first letter of domain
+        return domain.charAt(0).toUpperCase() + domain.slice(1);
+      }
+      
       const cleaned = lastSegment
         .replace(/\.[^.]+$/, '')
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
       return cleaned || domain;
     }
-    return domain;
+    
+    // Capitalize first letter of domain
+    return domain.charAt(0).toUpperCase() + domain.slice(1);
   } catch {
     return url;
   }
