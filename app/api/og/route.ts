@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const isTwitter = /^https?:\/\/(x\.com|twitter\.com)\//i.test(url);
     
     if (isTwitter) {
-      return await fetchTwitterOEmbed(url);
+      return await fetchTwitterViaFxTwitter(url);
     }
 
     const controller = new AbortController();
@@ -51,49 +51,78 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchTwitterOEmbed(url: string) {
+async function fetchTwitterViaFxTwitter(url: string) {
   try {
-    // Check if it's a tweet (has /status/) or a profile
-    const isTweet = /\/status\/\d+/.test(url);
+    // Convert x.com/twitter.com URL to fxtwitter API URL
+    // e.g., https://x.com/user/status/123 -> https://api.fxtwitter.com/user/status/123
+    // e.g., https://x.com/user -> https://api.fxtwitter.com/user
+    const path = url.replace(/^https?:\/\/(x\.com|twitter\.com)/i, '');
+    const fxUrl = `https://api.fxtwitter.com${path}`;
     
-    if (isTweet) {
-      // Use Twitter oEmbed for tweets
-      const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=true`;
-      
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch(oembedUrl, { signal: controller.signal });
-      clearTimeout(timeout);
-      
-      if (response.ok) {
-        const data = await response.json();
-        // Extract author name and clean up the HTML to get tweet text
-        const authorName = data.author_name || 'X';
-        // The html contains the tweet text, extract a preview
-        const htmlContent = data.html || '';
-        const tweetMatch = htmlContent.match(/<p[^>]*>([^<]+)<\/p>/);
-        const tweetText = tweetMatch ? tweetMatch[1].slice(0, 100) : '';
-        
-        return NextResponse.json({
-          image: null, // Twitter oEmbed doesn't provide images
-          title: tweetText ? `${authorName}: "${tweetText}${tweetText.length >= 100 ? '...' : ''}"` : `Post by ${authorName}`,
-        });
-      }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(fxUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    
+    if (!response.ok) {
+      return fallbackTwitterTitle(url);
     }
     
-    // For profiles or failed oEmbed, extract username from URL
-    const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/\?]+)/i);
-    if (usernameMatch) {
-      const username = usernameMatch[1];
+    const data = await response.json();
+    
+    if (data.code !== 200) {
+      return fallbackTwitterTitle(url);
+    }
+    
+    // Check if it's a tweet or a profile
+    if (data.tweet) {
+      // It's a tweet
+      const tweet = data.tweet;
+      const authorName = tweet.author?.name || tweet.author?.screen_name || 'X';
+      const text = tweet.text?.slice(0, 100) || '';
+      const ellipsis = tweet.text?.length > 100 ? '...' : '';
+      
+      // Get image: prefer media thumbnail, then author avatar
+      let image = null;
+      if (tweet.media?.photos?.[0]?.url) {
+        image = tweet.media.photos[0].url;
+      } else if (tweet.media?.videos?.[0]?.thumbnail_url) {
+        image = tweet.media.videos[0].thumbnail_url;
+      } else if (tweet.author?.avatar_url) {
+        image = tweet.author.avatar_url;
+      }
+      
       return NextResponse.json({
-        image: null,
-        title: `@${username} on X`,
+        image,
+        title: text ? `${authorName}: "${text}${ellipsis}"` : `Post by ${authorName}`,
+      });
+    } else if (data.user) {
+      // It's a profile
+      const user = data.user;
+      const image = user.banner_url || user.avatar_url || null;
+      const name = user.name || user.screen_name || 'X';
+      
+      return NextResponse.json({
+        image,
+        title: `@${user.screen_name} on X`,
       });
     }
     
-    return NextResponse.json({ image: null, title: 'X' });
+    return fallbackTwitterTitle(url);
   } catch {
-    return NextResponse.json({ image: null, title: 'X' });
+    return fallbackTwitterTitle(url);
   }
+}
+
+function fallbackTwitterTitle(url: string) {
+  // Extract username from URL as fallback
+  const usernameMatch = url.match(/(?:x\.com|twitter\.com)\/([^\/\?]+)/i);
+  if (usernameMatch) {
+    return NextResponse.json({
+      image: null,
+      title: `@${usernameMatch[1]} on X`,
+    });
+  }
+  return NextResponse.json({ image: null, title: 'X' });
 }
