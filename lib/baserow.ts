@@ -25,7 +25,8 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
     url.searchParams.set('page', String(page));
     // Filter out archived rows and sort by newest first
     // Archived is a single select field with options: "Yes" (5100881), "No" (5100882)
-    url.searchParams.set('filter__Archived__single_select_equal', 'No');
+    // Use single_select_not_equal to exclude rows where Archived = "Yes"
+    url.searchParams.set('filter__Archived__single_select_not_equal', 'Yes');
     url.searchParams.set('order_by', '-Created On');
 
     const response = await fetch(url.toString(), {
