@@ -24,7 +24,8 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
     url.searchParams.set('size', '100');
     url.searchParams.set('page', String(page));
     // Filter out archived rows and sort by newest first
-    url.searchParams.set('filter__Archived__boolean', 'false');
+    // Archived is a single select field with options: "Yes" (5100881), "No" (5100882)
+    url.searchParams.set('filter__Archived__single_select_equal', 'No');
     url.searchParams.set('order_by', '-Created On');
 
     const response = await fetch(url.toString(), {
@@ -45,7 +46,7 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
         id: item.id,
         entry: item.Entry || '',
         type: item.Type?.value || null,
-        archived: item.Archived || false,
+        archived: item.Archived?.value === 'Yes',
         createdOn: item['Created On'] || null,
       });
     }
@@ -73,7 +74,8 @@ export async function archiveDistraction(rowId: number): Promise<void> {
         Authorization: `Token ${apiToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ Archived: true }),
+      // Archived is a single select field - set to "Yes" to archive
+      body: JSON.stringify({ Archived: 'Yes' }),
     }
   );
 
