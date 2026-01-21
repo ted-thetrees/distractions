@@ -55,10 +55,45 @@ body {
 }
 
 .card {
+  position: relative;
   background: var(--card-bg);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.hide-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.card:hover .hide-button,
+.card:focus-within .hide-button {
+  opacity: 1;
+}
+
+.hide-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.hide-button:focus {
+  opacity: 1;
+  outline: 2px solid white;
+  outline-offset: 2px;
 }
 
 .card-link {

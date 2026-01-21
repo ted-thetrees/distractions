@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { detectVideo, getYouTubeId, getVimeoId } from '@/lib/unfurl';
 
 interface CardProps {
-  name: string;
-  link: string;
-  image?: string;
+  id: number;
+  entry: string;
+  type: string | null;
+  onHide: (id: number) => void;
 }
 
 type ContentType = 'note' | 'x-profile' | 'x-post' | 'youtube' | 'vimeo' | 'apple-music-album' | 'apple-music-track' | 'website';
@@ -21,7 +22,11 @@ function isValidUrl(str: string): boolean {
   }
 }
 
-export default function Card({ name, link, image }: CardProps) {
+export default function Card({ id, entry, type, onHide }: CardProps) {
+  const link = entry;
+  const name = ''; // Name/title will be fetched dynamically
+  const image = undefined; // Image will be fetched via OG
+
   const isNote = !isValidUrl(link);
   const video = isNote ? null : detectVideo(link);
   const [ogImage, setOgImage] = useState<string | undefined>(undefined);
@@ -30,11 +35,11 @@ export default function Card({ name, link, image }: CardProps) {
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
 
-  // For notes, use the link field as the title if name is empty
-  const noteTitle = isNote ? (name || link || 'Note') : '';
+  // For notes, use the entry as the title
+  const noteTitle = isNote ? entry : '';
   const needsOgFetch = !isNote && !video && !image;
   const needsVideoTitle = !isNote && video && !name;
-  const displayTitle = isNote 
+  const displayTitle = isNote
     ? decodeHtmlEntities(noteTitle)
     : decodeHtmlEntities(name || fetchedTitle || extractTitleFromUrl(link));
   const displayImage = image || ogImage;
@@ -54,11 +59,11 @@ export default function Card({ name, link, image }: CardProps) {
       (entries) => {
         if (entries[0].isIntersecting) {
           observer.disconnect();
-          
+
           if (needsVideoTitle) {
             const youtubeId = getYouTubeId(link);
             const vimeoId = getVimeoId(link);
-            
+
             let apiUrl: string;
             if (youtubeId) {
               apiUrl = `/api/video-title?type=youtube&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${youtubeId}`)}`;
@@ -68,7 +73,7 @@ export default function Card({ name, link, image }: CardProps) {
               setFetched(true);
               return;
             }
-            
+
             fetch(apiUrl)
               .then((res) => res.json())
               .then((data) => {
@@ -101,7 +106,7 @@ export default function Card({ name, link, image }: CardProps) {
   // Fetch brand logo
   useEffect(() => {
     if (isNote || !brandDomain) return;
-    
+
     fetch(`/api/brand-logo?domain=${encodeURIComponent(brandDomain)}`)
       .then((res) => res.json())
       .then((data) => {
@@ -109,6 +114,12 @@ export default function Card({ name, link, image }: CardProps) {
       })
       .catch(() => {});
   }, [isNote, brandDomain]);
+
+  const handleHideClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onHide(id);
+  };
 
   const metaContent = (
     <>
@@ -123,10 +134,24 @@ export default function Card({ name, link, image }: CardProps) {
     </>
   );
 
+  const hideButton = (
+    <button
+      className="hide-button"
+      onClick={handleHideClick}
+      aria-label="Hide this card"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    </button>
+  );
+
   // Note cards - no link, just display title and metadata
   if (isNote) {
     return (
       <article className="card card-note" ref={cardRef}>
+        {hideButton}
         <div className="card-body">
           <h2 className="card-title">{displayTitle}</h2>
         </div>
@@ -137,6 +162,7 @@ export default function Card({ name, link, image }: CardProps) {
 
   return (
     <article className="card" ref={cardRef}>
+      {hideButton}
       <a href={link} target="_blank" rel="noopener noreferrer" className="card-link">
         <div className={`card-media${video ? ' has-video' : ''}`}>
           {video ? (
@@ -159,10 +185,10 @@ export default function Card({ name, link, image }: CardProps) {
         </div>
       </a>
       {contentType === 'website' && websiteDomain ? (
-        <a 
-          href={`https://${websiteDomain}`} 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href={`https://${websiteDomain}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="card-meta card-meta-link"
           onClick={(e) => e.stopPropagation()}
         >
@@ -202,7 +228,7 @@ function getBrandDomain(url: string): string | null {
     if (domain === 'music.apple.com') {
       return 'music.apple.com';
     }
-    
+
     // For other websites, use the actual domain
     return domain;
   } catch {
@@ -214,7 +240,7 @@ function getContentType(url: string): ContentType {
   if (!isValidUrl(url)) {
     return 'note';
   }
-  
+
   try {
     const parsed = new URL(url);
     const domain = parsed.hostname.replace(/^www\./, '');
@@ -333,7 +359,7 @@ function decodeHtmlEntities(text: string): string {
     '&ndash;': '–',
     '&mdash;': '—',
   };
-  
+
   return text.replace(/&[#\w]+;/g, (entity) => entities[entity] || entity);
 }
 
@@ -354,18 +380,18 @@ function extractTitleFromUrl(url: string): string {
     if (path && path !== '/') {
       const segments = path.split('/').filter(Boolean);
       const lastSegment = segments[segments.length - 1];
-      
+
       if (/^\d+$/.test(lastSegment) || lastSegment.length > 15 && /^[a-zA-Z0-9_-]+$/.test(lastSegment)) {
         return domain.charAt(0).toUpperCase() + domain.slice(1);
       }
-      
+
       const cleaned = lastSegment
         .replace(/\.[^.]+$/, '')
         .replace(/[-_]/g, ' ')
         .replace(/\b\w/g, (c) => c.toUpperCase());
       return cleaned || domain;
     }
-    
+
     return domain.charAt(0).toUpperCase() + domain.slice(1);
   } catch {
     return url;

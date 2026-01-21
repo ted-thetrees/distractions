@@ -1,5 +1,5 @@
-import { fetchDistractions } from '@/lib/coda';
-import Card from '@/components/Card';
+import { fetchDistractions } from '@/lib/baserow';
+import Feed from '@/components/Feed';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
@@ -24,16 +24,7 @@ export default async function Home() {
       ) : items.length === 0 ? (
         <div className="loading">No items found</div>
       ) : (
-        <div className="feed">
-          {items.map((item) => (
-            <Card
-              key={item.id}
-              name={item.name}
-              link={item.link}
-              image={item.image}
-            />
-          ))}
-        </div>
+        <Feed initialItems={items} />
       )}
     </main>
   );
