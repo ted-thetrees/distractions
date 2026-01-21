@@ -62,7 +62,7 @@ body {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
 }
 
-.hide-button {
+.archive-button {
   position: absolute;
   top: 8px;
   right: 8px;
@@ -81,16 +81,16 @@ body {
   transition: opacity 0.2s ease;
 }
 
-.card:hover .hide-button,
-.card:focus-within .hide-button {
+.card:hover .archive-button,
+.card:focus-within .archive-button {
   opacity: 1;
 }
 
-.hide-button:hover {
+.archive-button:hover {
   background: rgba(0, 0, 0, 0.7);
 }
 
-.hide-button:focus {
+.archive-button:focus {
   opacity: 1;
   outline: 2px solid white;
   outline-offset: 2px;

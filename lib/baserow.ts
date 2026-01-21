@@ -2,7 +2,7 @@ export interface DistractionRow {
   id: number;
   entry: string;
   type: string | null;
-  hidden: boolean;
+  archived: boolean;
   createdOn: string | null;
 }
 
@@ -23,8 +23,8 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
     url.searchParams.set('user_field_names', 'true');
     url.searchParams.set('size', '100');
     url.searchParams.set('page', String(page));
-    // Filter out hidden rows and sort by newest first
-    url.searchParams.set('filter__Hidden__boolean', 'false');
+    // Filter out archived rows and sort by newest first
+    url.searchParams.set('filter__Archived__boolean', 'false');
     url.searchParams.set('order_by', '-Created On');
 
     const response = await fetch(url.toString(), {
@@ -45,7 +45,7 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
         id: item.id,
         entry: item.Entry || '',
         type: item.Type?.value || null,
-        hidden: item.Hidden || false,
+        archived: item.Archived || false,
         createdOn: item['Created On'] || null,
       });
     }
@@ -57,7 +57,7 @@ export async function fetchDistractions(): Promise<DistractionRow[]> {
   return rows;
 }
 
-export async function hideDistraction(rowId: number): Promise<void> {
+export async function archiveDistraction(rowId: number): Promise<void> {
   const tableId = 809876;
   const apiToken = process.env.BASEROW_API_TOKEN;
 
@@ -73,7 +73,7 @@ export async function hideDistraction(rowId: number): Promise<void> {
         Authorization: `Token ${apiToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ Hidden: true }),
+      body: JSON.stringify({ Archived: true }),
     }
   );
 

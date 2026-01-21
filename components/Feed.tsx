@@ -11,12 +11,12 @@ interface FeedProps {
 export default function Feed({ initialItems }: FeedProps) {
   const [items, setItems] = useState(initialItems);
 
-  const handleHide = async (id: number) => {
+  const handleArchive = async (id: number) => {
     // Optimistic update - remove from UI immediately
     setItems((prev) => prev.filter((item) => item.id !== id));
 
     try {
-      const response = await fetch('/api/hide', {
+      const response = await fetch('/api/archive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -25,10 +25,10 @@ export default function Feed({ initialItems }: FeedProps) {
       if (!response.ok) {
         // If API fails, restore the item (would need to track removed items for this)
         // For now, just log the error - the page refresh will show the item again anyway
-        console.error('Failed to hide item');
+        console.error('Failed to archive item');
       }
     } catch (error) {
-      console.error('Error hiding item:', error);
+      console.error('Error archiving item:', error);
     }
   };
 
@@ -40,7 +40,7 @@ export default function Feed({ initialItems }: FeedProps) {
           id={item.id}
           entry={item.entry}
           type={item.type}
-          onHide={handleHide}
+          onArchive={handleArchive}
         />
       ))}
     </div>

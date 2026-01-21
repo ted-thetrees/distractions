@@ -7,7 +7,7 @@ interface CardProps {
   id: number;
   entry: string;
   type: string | null;
-  onHide: (id: number) => void;
+  onArchive: (id: number) => void;
 }
 
 type ContentType = 'note' | 'x-profile' | 'x-post' | 'youtube' | 'vimeo' | 'apple-music-album' | 'apple-music-track' | 'website';
@@ -22,7 +22,7 @@ function isValidUrl(str: string): boolean {
   }
 }
 
-export default function Card({ id, entry, type, onHide }: CardProps) {
+export default function Card({ id, entry, type, onArchive }: CardProps) {
   const link = entry;
   const name = ''; // Name/title will be fetched dynamically
   const image = undefined; // Image will be fetched via OG
@@ -115,10 +115,10 @@ export default function Card({ id, entry, type, onHide }: CardProps) {
       .catch(() => {});
   }, [isNote, brandDomain]);
 
-  const handleHideClick = (e: React.MouseEvent) => {
+  const handleArchiveClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onHide(id);
+    onArchive(id);
   };
 
   const metaContent = (
@@ -134,11 +134,11 @@ export default function Card({ id, entry, type, onHide }: CardProps) {
     </>
   );
 
-  const hideButton = (
+  const archiveButton = (
     <button
-      className="hide-button"
-      onClick={handleHideClick}
-      aria-label="Hide this card"
+      className="archive-button"
+      onClick={handleArchiveClick}
+      aria-label="Archive this card"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="6" x2="6" y2="18" />
@@ -151,7 +151,7 @@ export default function Card({ id, entry, type, onHide }: CardProps) {
   if (isNote) {
     return (
       <article className="card card-note" ref={cardRef}>
-        {hideButton}
+        {archiveButton}
         <div className="card-body">
           <h2 className="card-title">{displayTitle}</h2>
         </div>
@@ -162,7 +162,7 @@ export default function Card({ id, entry, type, onHide }: CardProps) {
 
   return (
     <article className="card" ref={cardRef}>
-      {hideButton}
+      {archiveButton}
       <a href={link} target="_blank" rel="noopener noreferrer" className="card-link">
         <div className={`card-media${video ? ' has-video' : ''}`}>
           {video ? (
