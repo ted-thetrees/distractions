@@ -20,7 +20,7 @@ const actions: { type: ActionType; label: string; colors: string }[] = [
   { type: 'TS', label: 'Tech Stack', colors: 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200 border-cyan-200' },
   { type: 'TB', label: 'To Buy', colors: 'bg-pink-100 text-pink-800 hover:bg-pink-200 border-pink-200' },
   { type: 'DV', label: 'Do/Visit', colors: 'bg-teal-100 text-teal-800 hover:bg-teal-200 border-teal-200' },
-  { type: 'DL', label: 'Delete', colors: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-200' },
+  { type: 'DL', label: 'Delete', colors: 'bg-gray-800 text-white hover:bg-gray-700 border-gray-800' },
 ];
 
 export default function ActionButtons({ rowId, onAction }: ActionButtonsProps) {
