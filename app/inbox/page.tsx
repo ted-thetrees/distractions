@@ -17,7 +17,7 @@ export default async function InboxPage() {
   return (
     <main>
       <header className="header">
-        <h1>Inbox</h1>
+        <h1>Lobster</h1>
         <TabNav activeTab="inbox" />
       </header>
 
