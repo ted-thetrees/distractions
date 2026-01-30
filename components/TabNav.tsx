@@ -8,7 +8,7 @@ export default function TabNav({ activeTab }: TabNavProps) {
   return (
     <nav className="tab-nav">
       <Link
-        href="/"
+        href="/distractions"
         className={`tab-link ${activeTab === 'distractions' ? 'active' : ''}`}
       >
         Distractions
