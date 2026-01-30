@@ -18,7 +18,7 @@ export default async function Home() {
   return (
     <main>
       <header className="header">
-        <h1>Distractions</h1>
+        <h1>Lobster</h1>
         <TabNav activeTab="distractions" />
       </header>
 

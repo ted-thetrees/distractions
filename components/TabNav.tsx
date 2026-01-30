@@ -17,7 +17,7 @@ export default function TabNav({ activeTab }: TabNavProps) {
         href="/inbox"
         className={`tab-link ${activeTab === 'inbox' ? 'active' : ''}`}
       >
-        Lobster
+        Inbox
       </Link>
     </nav>
   );
