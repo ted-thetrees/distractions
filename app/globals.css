@@ -8,6 +8,7 @@
   --text: #1c1c1e;
   --text-secondary: #8e8e93;
   --divider: #d1d1d6;
+  --accent: #007aff;
   
   --spacing: 16px;
   --radius: 16px;
@@ -44,6 +45,34 @@ body {
   font-size: 1.75rem;
   font-weight: 600;
   letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tab-link {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  transition: all 0.2s ease;
+}
+
+.tab-link:hover {
+  color: var(--text);
+}
+
+.tab-link.active {
+  color: white;
+  background: var(--accent);
 }
 
 .feed {

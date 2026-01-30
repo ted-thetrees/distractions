@@ -1,5 +1,6 @@
 import { fetchDistractions } from '@/lib/baserow';
 import Feed from '@/components/Feed';
+import TabNav from '@/components/TabNav';
 
 // Force dynamic rendering - env vars read at runtime, not build time
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ export default async function Home() {
     <main>
       <header className="header">
         <h1>Distractions</h1>
+        <TabNav activeTab="distractions" />
       </header>
 
       {error ? (
