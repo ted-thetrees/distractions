@@ -6,7 +6,15 @@ export interface InboxRow {
   createdAt: string;
 }
 
-export async function fetchInboxItems(): Promise<InboxRow[]> {
+export interface InboxPageResult {
+  items: InboxRow[];
+  nextPageToken: string | null;
+}
+
+export async function fetchInboxItems(
+  limit: number = 25,
+  pageToken?: string
+): Promise<InboxPageResult> {
   const docId = 'x8nvwL5l1e';
   const tableId = 'grid-P9x9MSRV31';
   const apiToken = process.env.CODA_API_TOKEN;
@@ -15,45 +23,39 @@ export async function fetchInboxItems(): Promise<InboxRow[]> {
     throw new Error('CODA_API_TOKEN environment variable is required');
   }
 
-  const rows: InboxRow[] = [];
-  let pageToken: string | null = null;
+  const url = new URL(`https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/rows`);
+  url.searchParams.set('limit', String(limit));
+  url.searchParams.set('sortBy', 'createdAt');
+  url.searchParams.set('direction', 'descending');
+  if (pageToken) {
+    url.searchParams.set('pageToken', pageToken);
+  }
 
-  do {
-    const url = new URL(`https://coda.io/apis/v1/docs/${docId}/tables/${tableId}/rows`);
-    url.searchParams.set('limit', '100');
-    url.searchParams.set('sortBy', 'createdAt');
-    url.searchParams.set('direction', 'descending');
-    if (pageToken) {
-      url.searchParams.set('pageToken', pageToken);
-    }
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+    },
+    cache: 'no-store',
+  });
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-      },
-      cache: 'no-store',
-    });
+  if (!response.ok) {
+    throw new Error(`Coda API error: ${response.status}`);
+  }
 
-    if (!response.ok) {
-      throw new Error(`Coda API error: ${response.status}`);
-    }
+  const data = await response.json();
 
-    const data = await response.json();
+  const items: InboxRow[] = data.items.map((item: Record<string, unknown>) => ({
+    id: item.id,
+    entry: (item.values as Record<string, string>)['c-JNxO-bx_kU'] || item.name || '',
+    recordType: (item.values as Record<string, string>)['c-_y8fi93TKI'] || null,
+    title: (item.values as Record<string, string>)['c-zQlx72b6vU'] || null,
+    createdAt: item.createdAt,
+  }));
 
-    for (const item of data.items) {
-      rows.push({
-        id: item.id,
-        entry: item.values['c-JNxO-bx_kU'] || item.name || '',
-        recordType: item.values['c-_y8fi93TKI'] || null,
-        title: item.values['c-zQlx72b6vU'] || null,
-        createdAt: item.createdAt,
-      });
-    }
-
-    pageToken = data.nextPageToken || null;
-  } while (pageToken);
-
-  return rows;
+  return {
+    items,
+    nextPageToken: data.nextPageToken || null,
+  };
 }
 
 export async function deleteInboxItem(rowId: string): Promise<void> {

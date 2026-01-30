@@ -5,11 +5,11 @@ import TabNav from '@/components/TabNav';
 export const dynamic = 'force-dynamic';
 
 export default async function InboxPage() {
-  let items: Awaited<ReturnType<typeof fetchInboxItems>> = [];
+  let result: Awaited<ReturnType<typeof fetchInboxItems>> | null = null;
   let error: string | null = null;
 
   try {
-    items = await fetchInboxItems();
+    result = await fetchInboxItems(25);
   } catch (e) {
     error = e instanceof Error ? e.message : 'Failed to load';
   }
@@ -23,10 +23,13 @@ export default async function InboxPage() {
 
       {error ? (
         <div className="loading">{error}</div>
-      ) : items.length === 0 ? (
+      ) : !result || result.items.length === 0 ? (
         <div className="loading">No items in inbox</div>
       ) : (
-        <InboxFeed initialItems={items} />
+        <InboxFeed
+          initialItems={result.items}
+          initialNextPageToken={result.nextPageToken}
+        />
       )}
     </main>
   );
