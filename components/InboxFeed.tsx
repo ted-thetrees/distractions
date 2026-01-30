@@ -32,11 +32,12 @@ export default function InboxFeed({ initialItems }: InboxFeedProps) {
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to process action:', response.status, errorData);
         // Revert on error
         setItems((prev) => [...prev, item].sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         ));
-        console.error('Failed to process action');
       }
     } catch (error) {
       // Revert on error
