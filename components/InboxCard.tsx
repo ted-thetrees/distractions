@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { detectVideo, getYouTubeId, getVimeoId } from '@/lib/unfurl';
+import ActionButtons, { type ActionType } from '@/components/ActionButtons';
 
 interface InboxCardProps {
   id: string;
   entry: string;
   recordType: string | null;
   title: string | null;
-  onDelete: (id: string) => void;
+  onAction: (id: string, action: ActionType) => Promise<void>;
 }
 
 function isValidUrl(str: string): boolean {
@@ -43,7 +44,7 @@ function getBrandDomain(url: string): string | null {
   }
 }
 
-export default function InboxCard({ id, entry, recordType, title, onDelete }: InboxCardProps) {
+export default function InboxCard({ id, entry, recordType, title, onAction }: InboxCardProps) {
   const isNote = recordType === 'Note' || !isValidUrl(entry);
   const link = isNote ? null : entry;
   const video = link ? detectVideo(link) : null;
@@ -125,24 +126,9 @@ export default function InboxCard({ id, entry, recordType, title, onDelete }: In
       .catch(() => {});
   }, [isNote, brandDomain]);
 
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onDelete(id);
+  const handleAction = async (rowId: string, action: ActionType) => {
+    await onAction(rowId, action);
   };
-
-  const deleteButton = (
-    <button
-      className="archive-button"
-      onClick={handleDeleteClick}
-      aria-label="Delete this item"
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18" />
-        <line x1="6" y1="6" x2="18" y2="18" />
-      </svg>
-    </button>
-  );
 
   const metaContent = (
     <>
@@ -164,18 +150,17 @@ export default function InboxCard({ id, entry, recordType, title, onDelete }: In
   if (isNote) {
     return (
       <article className="card card-note" ref={cardRef}>
-        {deleteButton}
         <div className="card-body">
           <h2 className="card-title">{displayTitle}</h2>
         </div>
         <div className="card-meta">{metaContent}</div>
+        <ActionButtons rowId={id} onAction={handleAction} />
       </article>
     );
   }
 
   return (
     <article className="card" ref={cardRef}>
-      {deleteButton}
       <a href={link!} target="_blank" rel="noopener noreferrer" className="card-link">
         <div className={`card-media${video ? ' has-video' : ''}`}>
           {video ? (
@@ -208,6 +193,7 @@ export default function InboxCard({ id, entry, recordType, title, onDelete }: In
       ) : (
         <div className="card-meta">{metaContent}</div>
       )}
+      <ActionButtons rowId={id} onAction={handleAction} />
     </article>
   );
 }

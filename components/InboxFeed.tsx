@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import InboxCard from './InboxCard';
 import type { InboxRow } from '@/lib/coda-inbox';
+import type { ActionType } from '@/components/ActionButtons';
 
 interface InboxFeedProps {
   initialItems: InboxRow[];
@@ -11,22 +12,38 @@ interface InboxFeedProps {
 export default function InboxFeed({ initialItems }: InboxFeedProps) {
   const [items, setItems] = useState(initialItems);
 
-  const handleDelete = async (id: string) => {
+  const handleAction = async (id: string, action: ActionType) => {
+    // Find the item to get its entry content
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+
     // Optimistic update - remove from UI immediately
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    setItems((prev) => prev.filter((i) => i.id !== id));
 
     try {
-      const response = await fetch('/api/inbox/delete', {
+      const response = await fetch('/api/inbox/action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({
+          rowId: id,
+          action,
+          entryContent: item.entry,
+        }),
       });
 
       if (!response.ok) {
-        console.error('Failed to delete item');
+        // Revert on error
+        setItems((prev) => [...prev, item].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+        console.error('Failed to process action');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      // Revert on error
+      setItems((prev) => [...prev, item].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ));
+      console.error('Error processing action:', error);
     }
   };
 
@@ -39,7 +56,7 @@ export default function InboxFeed({ initialItems }: InboxFeedProps) {
           entry={item.entry}
           recordType={item.recordType}
           title={item.title}
-          onDelete={handleDelete}
+          onAction={handleAction}
         />
       ))}
     </div>
