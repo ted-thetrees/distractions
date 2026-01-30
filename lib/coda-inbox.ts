@@ -102,13 +102,13 @@ interface DestinationConfig {
 
 const destinations: Record<Exclude<ActionType, 'DL'>, DestinationConfig> = {
   DI: { tableId: 'grid-t9UDaCw93A', columnId: 'c-V60iC4UaYP' }, // Distractions | Singles | Data Entry - Link
-  TA: { tableId: 'grid-qjPOxmqvq9', columnId: 'c-0FiLOYm4ER' }, // Talent - Website
-  IA: { tableId: 'grid-WRl6HLJeKf', columnId: 'c-A-5TQpIj6O' }, // Inspiring Assets - Source URL
-  PR: { tableId: 'grid-yTcLZeEBvR', columnId: 'c-EfDd8F6oDn' }, // Project Matrix | New Project - Project
-  MI: { tableId: 'grid-xjB5kLBqX5', columnId: 'c-xjTcM5FIgQ' }, // Meaty Ideas - Idea
-  TS: { tableId: 'grid-LHJa0mBqtH', columnId: 'c-0IkEQLpKlL' }, // Tech Stack - Stack Item
-  TB: { tableId: 'grid-QJc4O0aHvM', columnId: 'c-AUALuPyujS', extraColumns: { 'c-sHqXLxlMPy': 'Inbox' } }, // To Buy - Item (Magnitude=Inbox)
-  DV: { tableId: 'grid-pV8HH7SBX3', columnId: 'c-Q9Jjg-NZg2' }, // Do/Visit - Short Summary
+  TA: { tableId: 'grid-nWL5HfnVj7', columnId: 'c-xM7Hq_0MZ8' }, // Talent - Website
+  IA: { tableId: 'grid-7qiggjHCXv', columnId: 'c-lw-8F3lcSC' }, // LTTT | Inspiring Assets | All - Source URL
+  PR: { tableId: 'table-h6bTek4xQC', columnId: 'c-Z599iCiqKT' }, // Project Matrix | New Project - Project
+  MI: { tableId: 'grid-UtaAByauBo', columnId: 'c-R1DC_wYTPy' }, // LTTT | Ideas | Meaty - Idea
+  TS: { tableId: 'grid-HtQrEdOIqh', columnId: 'c-R1DC_wYTPy' }, // INF | Ideas | Tech Stack - Stack Item
+  TB: { tableId: 'table-nV15ULr9Ln', columnId: 'c-DRJDhlMaqs', extraColumns: { 'c-wnGNftGEny': 'Inbox' } }, // To Buy - Item (Magnitude=Inbox)
+  DV: { tableId: 'grid-xJGIAsjYqj', columnId: 'c-zAi5pOva7H' }, // Do/Visit - Short Summary
 };
 
 export async function processInboxAction(
