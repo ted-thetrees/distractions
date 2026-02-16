@@ -18,7 +18,7 @@ export default function InboxCard({ id, entry, title, onAction }: InboxCardProps
 
   const youtubeId = getYouTubeId(entry);
   const thumbnailUrl = youtubeId
-    ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
+    ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`
     : null;
   const videoUrl = youtubeId
     ? `https://www.youtube.com/watch?v=${youtubeId}`
