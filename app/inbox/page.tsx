@@ -1,6 +1,5 @@
 import { fetchInboxItems } from '@/lib/coda-inbox';
 import InboxFeed from '@/components/InboxFeed';
-import TabNav from '@/components/TabNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,13 +17,12 @@ export default async function InboxPage() {
     <main>
       <header className="header">
         <h1>Lobster</h1>
-        <TabNav activeTab="inbox" />
       </header>
 
       {error ? (
         <div className="loading">{error}</div>
       ) : !result || result.items.length === 0 ? (
-        <div className="loading">No items in inbox</div>
+        <div className="loading">No videos in inbox</div>
       ) : (
         <InboxFeed
           initialItems={result.items}

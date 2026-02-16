@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import InboxCard from './InboxCard';
 import type { InboxRow } from '@/lib/coda-inbox';
-import type { ActionType } from '@/components/ActionButtons';
 
 interface InboxFeedProps {
   initialItems: InboxRow[];
@@ -44,48 +43,12 @@ export default function InboxFeed({ initialItems, initialNextPageToken }: InboxF
           loadMore();
         }
       },
-      { rootMargin: '200px' } // Load when sentinel is 200px from viewport
+      { rootMargin: '200px' }
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [loadMore, nextPageToken, isLoading]);
-
-  const handleAction = async (id: string, action: ActionType) => {
-    // Find the item to get its entry content
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
-
-    // Optimistic update - remove from UI immediately
-    setItems((prev) => prev.filter((i) => i.id !== id));
-
-    try {
-      const response = await fetch('/api/inbox/action', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rowId: id,
-          action,
-          entryContent: item.entry,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to process action:', response.status, errorData);
-        // Revert on error
-        setItems((prev) => [...prev, item].sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        ));
-      }
-    } catch (error) {
-      // Revert on error
-      setItems((prev) => [...prev, item].sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      ));
-      console.error('Error processing action:', error);
-    }
-  };
 
   return (
     <div className="feed">
@@ -94,12 +57,9 @@ export default function InboxFeed({ initialItems, initialNextPageToken }: InboxF
           key={item.id}
           id={item.id}
           entry={item.entry}
-          recordType={item.recordType}
           title={item.title}
-          onAction={handleAction}
         />
       ))}
-      {/* Sentinel element for infinite scroll */}
       <div ref={sentinelRef} style={{ height: '1px' }} />
       {isLoading && (
         <div className="loading" style={{ padding: '1rem', textAlign: 'center' }}>
@@ -108,7 +68,7 @@ export default function InboxFeed({ initialItems, initialNextPageToken }: InboxF
       )}
       {!nextPageToken && items.length > 0 && (
         <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>
-          End of inbox
+          End of videos
         </div>
       )}
     </div>
