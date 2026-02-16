@@ -28,7 +28,7 @@ export async function fetchInboxItems(
   url.searchParams.set('sortBy', 'createdAt');
   url.searchParams.set('direction', 'descending');
   // Filter to only rows where entry contains "youtube" (catches youtube.com and youtu.be)
-  url.searchParams.set('query', 'youtube');
+  url.searchParams.set('valueFilter', 'c-JNxO-bx_kU:youtube');
   if (pageToken) {
     url.searchParams.set('pageToken', pageToken);
   }
