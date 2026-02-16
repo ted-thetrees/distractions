@@ -2,14 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { getYouTubeId } from '@/lib/unfurl';
+import ActionButtons, { type ActionType } from '@/components/ActionButtons';
 
 interface InboxCardProps {
   id: string;
   entry: string;
   title: string | null;
+  onAction: (id: string, action: ActionType) => Promise<void>;
 }
 
-export default function InboxCard({ id, entry, title }: InboxCardProps) {
+export default function InboxCard({ id, entry, title, onAction }: InboxCardProps) {
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
@@ -66,6 +68,7 @@ export default function InboxCard({ id, entry, title }: InboxCardProps) {
           <h2 className="card-title">{displayTitle}</h2>
         </div>
       </a>
+      <ActionButtons rowId={id} onAction={onAction} />
     </article>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import InboxCard from './InboxCard';
 import type { InboxRow } from '@/lib/coda-inbox';
+import type { ActionType } from '@/components/ActionButtons';
 
 interface InboxFeedProps {
   initialItems: InboxRow[];
@@ -50,6 +51,38 @@ export default function InboxFeed({ initialItems, initialNextPageToken }: InboxF
     return () => observer.disconnect();
   }, [loadMore, nextPageToken, isLoading]);
 
+  const handleAction = async (id: string, action: ActionType) => {
+    const item = items.find((i) => i.id === id);
+    if (!item) return;
+
+    // Optimistic update - remove from UI immediately
+    setItems((prev) => prev.filter((i) => i.id !== id));
+
+    try {
+      const response = await fetch('/api/inbox/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rowId: id,
+          action,
+          entryContent: item.entry,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setItems((prev) => [...prev, item].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+    } catch {
+      // Revert on error
+      setItems((prev) => [...prev, item].sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ));
+    }
+  };
+
   return (
     <div className="feed">
       {items.map((item) => (
@@ -58,6 +91,7 @@ export default function InboxFeed({ initialItems, initialNextPageToken }: InboxF
           id={item.id}
           entry={item.entry}
           title={item.title}
+          onAction={handleAction}
         />
       ))}
       <div ref={sentinelRef} style={{ height: '1px' }} />
